@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Sequence for {{ shout.name }}</h2>
+    <form method="POST" action="{{ url_for('shout.manage_sequence', shout_id=shout.id) }}" id="sequenceForm">
+        <ul id="sequenceList" class="list-group">
+            {% for participant, sequence in active_participants %}
+                <li class="list-group-item" data-user-id="{{ participant.id }}">
+                    <i class="bi bi-grip-vertical me-2"></i>
+                    {{ participant.username }}
+                    <input type="hidden" name="sequence[]" value="{{ participant.id }}">
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#confirmModal">Save Sequence</button>
+    </form>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Sequence Update</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to update the sequence?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSaveButton">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include SortableJS for drag-and-drop functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var sequenceList = document.getElementById('sequenceList');
+        new Sortable(sequenceList, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function(evt) {
+                // Update the hidden input values based on the new order
+                var items = sequenceList.querySelectorAll('li');
+                items.forEach(function(item, index) {
+                    item.querySelector('input').value = item.getAttribute('data-user-id');
+                });
+            }
+        });
+
+        // Handle the confirmation modal save button click
+        document.getElementById('confirmSaveButton').addEventListener('click', function() {
+            document.getElementById('sequenceForm').submit();
+        });
+    });
+</script>
+{% endblock %}

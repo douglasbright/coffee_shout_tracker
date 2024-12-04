@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <header>
+        <h2>Shout Profile: {{ shout.name }}
+            <a href="{{ url_for('shout.user_shout_settings', shout_id=shout.id) }}" class="float-end">
+                <i class="bi bi-gear" style="font-size: 1.5rem;"></i>
+            </a>
+        </h2>
+    </header>
+    <h2>{{ shout.name }}
+        
+    </h2>
+    <p>
+        {{ shout.comments_public }}
+
+    </p>
+    
+    <!-- Shout Information and Participants Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <!-- Shout Information Column -->
+                <div class="col-md-6">
+                    <p><strong>Workplace:</strong> {{ shout.workplace }}</p>
+                    <p><strong>Created At:</strong> {{ shout.created_at.strftime('%Y-%m-%d') }}</p>
+                    <p><strong>Current Shouter:</strong> 
+                        {% if current_shouter %}
+                            <a href="{{ url_for('profile.profile_view', user_id=current_shouter.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ current_shouter.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ current_shouter.username }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No shouter assigned</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Favorite Coffee Shop:</strong>
+                        {% if favorite_coffee_shop %}
+                            <a href="{{ url_for('coffee_shop.coffee_shop_profile', coffee_shop_id=favorite_coffee_shop.coffee_shop.id) }}" class="text-body text-decoration-none">
+                                {{ favorite_coffee_shop.coffee_shop.name }}
+                            </a>
+                            <a href="#" class="text-body text-decoration-none" data-bs-toggle="modal" data-bs-target="#updateFavoriteCoffeeShopModal">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No favorite coffee shop selected</span>
+                            <a href="#" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#updateFavoriteCoffeeShopModal">Select Favorite Coffee Shop</a>
+                        {% endif %}
+                    </p>
+                    <!-- Record Shout Button -->
+                    {% if current_user in shout.participants %}
+                    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+                        <a href="{{ url_for('shout.record_shout', shout_id=shout.id) }}" class="btn btn-primary">Record Shout</a>
+                    </div>
+                    {% endif %}
+                    <!-- Mark Shout Absent Button -->
+                    {% if current_user in shout.participants %}
+                    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+                        <form method="POST" action="{{ url_for('shout.record_missed_shout', shout_id=shout.id) }}">
+                            <button type="submit" class="btn btn-warning w-100">Mark Shout Absent</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    <!-- View Stats Button -->
+                    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+                        <a href="{{ url_for('main.stats', shout_id=shout.id) }}" class="btn btn-secondary">View Stats</a>
+                    </div>
+                    <!-- View Calendar Button -->
+                    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+                        <a href="{{ url_for('shout.shout_calendar', shout_id=shout.id) }}" class="btn btn-info">View Calendar</a>
+                    </div>
+                </div>
+                <!-- Participants Column -->
+                <div class="col-md-6">
+                                <!-- Pie Chart -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <canvas id="coffeePurchasesChart"></canvas>
+                </div>
+            </div>
+                    <h5 class="card-title">Participants</h5>
+                    <ul class="list-group">
+                        {% for participant, is_admin in participants %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('profile.profile_view', user_id=participant.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ participant.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ participant.username }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- Admin action buttons -->
+    {% if user_is_admin %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-grid gap-2 d-md-block">
+                <h5 class="card-title">Admin Actions</h5>
+                <a href="{{ url_for('shout.shout_admin', shout_id=shout.id) }}" class="btn btn-primary">Go to Admin Page</a>
+                <a href="{{ url_for('shout.manage_sequence', shout_id=shout.id) }}" class="btn btn-secondary">Manage Sequence</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Coffee Purchase Stats -->
+    <h3 class="mt-4">Coffee Purchase Stats</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    {% for user in users %}
+                        <th>
+                            <a href="{{ url_for('profile.profile_view', user_id=user.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ user.username }}
+                            </a>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchaser in users %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('profile.profile_view', user_id=purchaser.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ purchaser.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ purchaser.username }}
+                            </a>
+                        </td>
+                        {% for recipient in users %}
+                            <td>{{ coffee_purchases[purchaser.id][recipient.id] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Coffee Purchase Ratios -->
+    <h3 class="mt-4">Coffee Purchase Ratios</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    {% for user in users %}
+                        <th>
+                            <a href="{{ url_for('profile.profile_view', user_id=user.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ user.username }}
+                            </a>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchaser in users %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('profile.profile_view', user_id=purchaser.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ purchaser.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ purchaser.username }}
+                            </a>
+                        </td>
+                        {% for recipient in users %}
+                            <td>{{ coffee_ratios[purchaser.id][recipient.id] | round(2) }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Update Favorite Coffee Shop Modal -->
+<div class="modal fade" id="updateFavoriteCoffeeShopModal" tabindex="-1" aria-labelledby="updateFavoriteCoffeeShopModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateFavoriteCoffeeShopModalLabel">Select Favorite Coffee Shop</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('shout.select_favorite_coffee_shop', shout_id=shout.id) }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.coffee_shop.label(class="form-label") }}
+                        {{ form.coffee_shop(class="form-control") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Pie Chart Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('coffeePurchasesChart').getContext('2d');
+    var coffeePurchasesChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ coffee_purchases_labels|tojson }},
+            datasets: [{
+                data: {{ coffee_purchases_data|tojson }},
+                
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Coffees Purchased Per User'
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

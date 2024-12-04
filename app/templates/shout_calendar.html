@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <header>
+        <h2>Shout Calendar for {{ shout.name }}</h2>
+    </header>
+    <div id="calendar"></div>
+</div>
+
+<!-- FullCalendar CSS and JS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+
+<!-- Tippy.js CSS and JS -->
+<link href="https://unpkg.com/tippy.js@6/dist/tippy.css" rel="stylesheet">
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: [
+            {% for shout_round in shout_rounds %}
+            {
+                title: '{{ shout_round.shouter.username }}',
+                start: '{{ shout_round.date }}',
+                extendedProps: {
+                    avatar: '{{ shout_round.shouter.avatar_icon }}',
+                    attendees: [{% for attendee in shout_round.attendees %}'{{ attendee.username }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+                    round_number: '{{ shout_round.round_number }}',
+                    edit_url: '{{ url_for("shout.edit_shout_round", shout_round_id=shout_round.id) }}'
+                }
+            },
+            {% endfor %}
+        ],
+        eventContent: function(arg) {
+            let avatar = arg.event.extendedProps.avatar;
+            let title = arg.event.title;
+            let url = arg.event.extendedProps.edit_url;
+            return { html: `<a href="${url}" class="d-flex align-items-center text-decoration-none"><i class="bi ${avatar} me-2" style="font-size: 1.2rem;"></i>${title}</a>` };
+        },
+        eventDidMount: function(info) {
+            tippy(info.el, {
+                content: '<strong>Round:</strong> ' + info.event.extendedProps.round_number + '<br><strong>Attendees:</strong><br>' + info.event.extendedProps.attendees.join('<br>'),
+                allowHTML: true,
+                placement: 'top',
+            });
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

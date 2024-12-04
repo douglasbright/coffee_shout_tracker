@@ -1,0 +1,28 @@
+<div class="modal fade" id="editUpdatePinModal" tabindex="-1" aria-labelledby="editUpdatePinModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUpdatePinModalLabel">Update PIN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('shout.update_shout_pin', shout_id=shout.id) }}">
+                    {{ update_pin_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ update_pin_form.current_pin.label }}
+                        {{ update_pin_form.current_pin(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ update_pin_form.new_pin.label }}
+                        {{ update_pin_form.new_pin(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ update_pin_form.confirm_new_pin.label }}
+                        {{ update_pin_form.confirm_new_pin(class="form-control") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update PIN</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

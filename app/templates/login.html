@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set hide_sidebar = True %}  <!-- Hide the sidebar for the login page -->
+
+{% block fullwidth %}
+<!-- Full-width section that overrides the base layout's container-fluid -->
+<div style="min-height: 80vh; background: url('{{ url_for('static', filename='images/background.jpg') }}') no-repeat center center fixed; background-size: cover; padding-top: 0;">
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow-lg" style="width: 24rem; background-color: rgba(255, 255, 255, 0.9);">
+            <div class="card-body">
+                <h2 class="text-center mb-4">Login</h2>
+                <form method="POST" class="form-group">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }} 
+                        {{ form.email(class="form-control", autocomplete="username") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }} 
+                        {{ form.password(class="form-control", autocomplete="current-password") }}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.remember(class="form-check-input") }} 
+                        {{ form.remember.label(class="form-check-label") }}
+                    </div>
+
+                    <!-- Full-width Submit Button -->
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </form>
+            </div>
+
+            <!-- Optional: Login as a different user and Register link -->
+            {% if form.email.data %}
+            <div class="card-body">
+                <form action="{{ url_for('auth.clear_remembered_user') }}" method="POST">
+                    <button type="submit" class="btn btn-secondary w-100">Login as Different User</button>
+                </form>
+            </div>
+            {% endif %}
+            
+            <p class="text-center mt-3">Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

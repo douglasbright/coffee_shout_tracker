@@ -1,0 +1,116 @@
+<!-- edit_shout.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Shout: {{ shout.name }}</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.name.label }} {{ form.name(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.workplace.label }} {{ form.workplace(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.is_private.label }} {{ form.is_private() }}
+        </div>
+        <div class="mb-3">
+            {{ form.passcode.label }} {{ form.passcode(class="form-control") }}
+        </div>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+</div>
+
+<div class="modal fade" id="editShoutModal{{ shout.id }}" tabindex="-1" aria-labelledby="editShoutLabel{{ shout.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Shout: {{ shout.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('main.edit_shout', shout_id=shout.id) }}" id="editShoutForm{{ shout.id }}" class="needs-validation" novalidate>
+                    {{ shout_form.hidden_tag() }}
+
+                    <!-- Shout Name -->
+                    <div class="mb-3">
+                        {{ shout_form.name.label }}
+                        {{ shout_form.name(class="form-control", required=True) }}
+                        <div class="invalid-feedback">
+                            Please provide a valid shout name.
+                        </div>
+                    </div>
+
+                    <!-- Workplace -->
+                    <div class="mb-3">
+                        {{ shout_form.workplace.label }}
+                        {{ shout_form.workplace(class="form-control", required=True) }}
+                        <div class="invalid-feedback">
+                            Please provide a valid workplace.
+                        </div>
+                    </div>
+
+                    <!-- Is Private Checkbox -->
+                    <div class="mb-3 form-check">
+                        {{ shout_form.is_private(class="form-check-input") }}
+                        {{ shout_form.is_private.label(class="form-check-label") }}
+                    </div>
+
+                    <!-- Current PIN (if a PIN exists) -->
+                    {% if shout.pin_code_hash %}
+                    <div class="mb-3">
+                        {{ shout_form.current_passcode.label }}
+                        {{ shout_form.current_passcode(class="form-control", required=True) }}
+                        <div class="invalid-feedback">
+                            Please enter the current PIN.
+                        </div>
+                    </div>
+                    
+                    {% endif %}
+
+                    <!-- New PIN (optional) -->
+                    <div class="mb-3">
+                        {{ shout_form.new_passcode.label }}
+                        {{ shout_form.new_passcode(class="form-control") }}
+                        <div class="form-text">Leave blank if you do not wish to change the PIN.</div>
+                    </div>
+
+                    <!-- Confirm New PIN (optional) -->
+                    <div class="mb-3">
+                        {{ shout_form.confirm_new_passcode.label }}
+                        {{ shout_form.confirm_new_passcode(class="form-control") }}
+                        <div class="invalid-feedback">
+                            The PIN codes do not match.
+                        </div>
+                    </div>
+
+
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Update Shout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Reattach validation when the modal is shown
+    document.addEventListener('DOMContentLoaded', function () {
+        var editShoutModal = document.getElementById('editShoutModal{{ shout.id }}');
+        
+        editShoutModal.addEventListener('shown.bs.modal', function () {
+            var form = document.getElementById('editShoutForm{{ shout.id }}');
+            
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

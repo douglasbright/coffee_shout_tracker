@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Profile</h2>
+
+<!-- Profile Details Table with Avatar and Username (Nested Table) -->
+<table class="table mt-4">
+    <tbody>
+        <!-- Avatar Section -->
+        <tr>
+            <td colspan="3" class="border-top border-bottom">
+                <!-- Nested table for the Avatar -->
+                <table class="w-100">
+                    <tr>
+                        <td class="text-center">
+                            <!-- Avatar Icon -->
+                            <i class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 8rem; color: inherit;"></i>
+                            <br>
+                            <!-- Edit Icon (Pencil) positioned below the avatar -->
+                            <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#updateAvatarModal">
+                                <i class="bi bi-pencil"></i> Edit Avatar
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+
+        <!-- Username Section (side-by-side) -->
+        <tr>
+            <td><strong>Username</strong></td>
+            <td>{{ current_user.username }}</td>
+            <td class="text-end">
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateUsernameModal{{ current_user.id }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </td>
+        </tr>
+
+        <!-- Email Section -->
+        <tr>
+            <td><strong>Email</strong></td>
+            <td>{{ current_user.email }}</td>
+            <td class="text-end">
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateEmailModal{{ current_user.id }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </td>
+        </tr>
+
+        <!-- Password Section -->
+        <tr>
+            <td><strong>Password</strong></td>
+            <td>******</td>
+            <td class="text-end">
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updatePasswordModal{{ current_user.id }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </td>
+        </tr>
+
+        <!-- Profile Visibility Toggle -->
+        <tr>
+            <td><strong>Profile Visibility</strong></td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="profileVisibilityToggle" {% if current_user.is_public %}checked{% endif %}>
+                    <label class="form-check-label" for="profileVisibilityToggle">Public Profile</label>
+                </div>
+            </td>
+            <td class="text-end">
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmVisibilityModal">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+
+</div>
+
+<!-- Include Modals for each form -->
+{% with user=current_user %}
+    {% include '_update_username_modal.html' %}
+    {% include '_update_email_modal.html' %}
+    {% include '_update_password_modal.html' %}
+{% endwith %}
+{% include '_update_avatar_modal.html' %}
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmVisibilityModal" tabindex="-1" aria-labelledby="confirmVisibilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmVisibilityModalLabel">Confirm Visibility Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to change your profile visibility?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmVisibilityChangeButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Confirmation Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var profileVisibilityToggle = document.getElementById('profileVisibilityToggle');
+        var confirmVisibilityModal = new bootstrap.Modal(document.getElementById('confirmVisibilityModal'));
+        var confirmVisibilityChangeButton = document.getElementById('confirmVisibilityChangeButton');
+
+        profileVisibilityToggle.addEventListener('change', function() {
+            confirmVisibilityModal.show();
+        });
+
+        confirmVisibilityChangeButton.addEventListener('click', function() {
+            var isPublic = profileVisibilityToggle.checked;
+            fetch('{{ url_for("profile.update_profile_visibility") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ is_public: isPublic })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

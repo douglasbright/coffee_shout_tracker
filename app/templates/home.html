@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% set hide_sidebar = True %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <div class="text-center">
+        <h1 class="mb-4">Welcome to Coffee Shout Tracker!</h1>
+        <p>This is the home page. Please <a href="{{ url_for('auth.login') }}">login</a> or <a href="{{ url_for('auth.register') }}">register</a> to join coffee shouts.</p>
+    </div>
+</div>
+{% endblock %}

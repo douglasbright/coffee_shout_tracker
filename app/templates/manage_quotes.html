@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Quotes</h2>
+    
+    <!-- Add New Quote Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Add New Quote</h5>
+            <form method="POST" action="{{ url_for('main.manage_quotes') }}">
+                {{ add_quote_form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ add_quote_form.text.label }}<br>
+                    {{ add_quote_form.text(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ add_quote_form.author.label }}<br>
+                    {{ add_quote_form.author(class="form-control") }}
+                </div>
+                <button type="submit" class="btn btn-primary">Add Quote</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Quotes List -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Quote</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quote in quotes %}
+            <tr>
+                <td>{{ quote.text }}</td>
+                <td>{{ quote.author or 'Unknown' }}</td>
+                <td>
+                    <!-- Edit Button (Opens Modal) -->
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editQuoteModal{{ quote.id }}">Edit</button>
+
+                    <!-- Delete Form -->
+                    <form method="POST" action="{{ url_for('main.delete_quote', quote_id=quote.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+
+            <!-- Edit Quote Modal -->
+            <div class="modal fade" id="editQuoteModal{{ quote.id }}" tabindex="-1" aria-labelledby="editQuoteModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editQuoteModalLabel">Edit Quote</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="POST" action="{{ url_for('main.edit_quote', quote_id=quote.id) }}">
+                                {{ edit_quote_form.hidden_tag() }}
+                                <div class="mb-3">
+                                    <label for="text">Quote</label>
+                                    <input type="text" name="text" class="form-control" value="{{ quote.text }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="author">Author</label>
+                                    <input type="text" name="author" class="form-control" value="{{ quote.author }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

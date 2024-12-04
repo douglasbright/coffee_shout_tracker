@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Manage Shouts</h2>
+
+    <!-- Make the table horizontally scrollable with the first column fixed -->
+    <div class="table-responsive position-relative overflow-auto">
+        <table class="table table-hover">
+            <thead class="position-sticky top-0 bg-light">
+                <tr>
+                    <th class="text-nowrap bg-light" style="position: sticky; left: 0;">Shout Name</th>
+                    <th class="text-nowrap">Workplace</th>
+                    <th class="text-nowrap">Private</th>
+                    <th class="text-nowrap">PIN Protected</th>
+                    <th>Participants</th>
+                    <th>Admins</th>
+                    <th class="text-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shout in shouts %}
+                <tr>
+                    <td class="text-nowrap bg-light" style="position: sticky; left: 0;">
+                        <a href="{{ url_for('shout.shout_profile', shout_id=shout.id) }}" class="text-primary text-decoration-none">{{ shout.name }}</a>
+                    </td>
+                    <td class="text-nowrap">{{ shout.workplace }}</td>
+                    <td class="text-nowrap">{{ 'Yes' if shout.is_private else 'No' }}</td>
+                    <td class="text-nowrap">{{ 'Yes' if shout.pin_code_hash else 'No' }}</td>
+
+                    <!-- Participants List -->
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            {% for participant, is_admin, is_active in participants_by_shout[shout.id] %}
+                                <li>
+                                    <a href="{{ url_for('profile.profile_view', user_id=participant.id) }}" class="text-primary text-decoration-none">
+                                        {{ participant.username }}
+                                    </a>
+                                    {% if not is_active %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+
+                    <!-- Admins List -->
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            {% for admin in admins_by_shout[shout.id] %}
+                                <li>
+                                    <a href="{{ url_for('profile.profile_view', user_id=admin.id) }}" class="text-primary text-decoration-none">
+                                        {{ admin.username }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+
+                    <!-- Action Buttons -->
+                    <td class="text-nowrap">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editShoutModal{{ shout.id }}">Edit</button>
+                            <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#manageParticipantsModal{{ shout.id }}">Manage Participants</button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Edit Shout Modal for each shout -->
+                {% with shout_form=shout_forms[shout.id], shout=shout %}
+                    {% include '_edit_shout_modal.html' %}
+                {% endwith %}
+
+                <!-- Manage Participants Modal (Can be included similarly if needed) -->
+                {% include '_manage_participants_modal.html' %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

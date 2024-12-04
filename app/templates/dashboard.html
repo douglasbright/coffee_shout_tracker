@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Main content area -->
+    <div class="container mt-4">
+        <h2>Dashboard</h2>
+        <h3>Welcome, {{ current_user.username }}!</h3>
+
+        <!-- Display the user's current shouts in a scrollable table -->
+        {% if user_shouts %}
+            <h3>Your Shouts</h3>
+            <div class="table-responsive">
+                <table class="table"> <!-- Removed table-hover for row hover effect -->
+                    <thead>
+                        <tr>
+                            <th>Shout Name</th>
+                            <th>Workplace</th>
+                            <th>Participants</th>
+                            <th>Admins</th>
+                            <th>Current Shouter</th>
+                            <th>Record Shout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for shout_data in user_shouts %}
+                        <tr>
+                            <!-- Shout Name with a link to the shout profile -->
+                            <td>
+                                <a href="{{ url_for('shout.shout_profile', shout_id=shout_data.shout.id) }}" class="text-body text-decoration-none">
+                                    {{ shout_data.shout.name }}
+                                </a>
+                            </td>
+                            <td>{{ shout_data.shout.workplace }}</td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    {% for participant, is_admin in shout_data.participants %}
+                                    <li>
+                                        <a href="{{ url_for('profile.profile_view', user_id=participant.id) }}" class="text-body text-decoration-none">
+                                            <i class="bi {{ participant.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                            {{ participant.username }}
+                                        </a>
+                                        {% if is_admin %} <span class="badge bg-secondary">Admin</span>{% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-unstyled">
+                                    {% for participant, is_admin in shout_data.participants %}
+                                    {% if is_admin %}
+                                    <li>
+                                        <a href="{{ url_for('profile.profile_view', user_id=participant.id) }}" class="text-body text-decoration-none">
+                                            {{ participant.username }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>
+                                {% if shout_data.shout.current_shouter %}
+                                    <a href="{{ url_for('profile.profile_view', user_id=shout_data.shout.current_shouter.id) }}" class="text-body text-decoration-none">
+                                        {{ shout_data.shout.current_shouter.username }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No shouter assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('shout.record_shout', shout_id=shout_data.shout.id) }}" class="btn btn-primary btn-sm">Record Shout</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">You are not currently part of any coffee shouts.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

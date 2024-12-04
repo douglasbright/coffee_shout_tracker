@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4 d-flex justify-content-center">
+    <div class="card" style="width: 30rem;">
+        <div class="card-body">
+            <h2 class="card-title">Record a Shout for {{ shout.name }}</h2>
+            <p>Next Round Number: {{ next_round_number }}</p>
+            <form method="POST" action="{{ url_for('shout.record_shout', shout_id=shout.id) }}">
+                {{ form.hidden_tag() }}
+                
+                <!-- Shouter Dropdown -->
+                <div class="mb-3">
+                    {{ form.shouter.label(class="form-label") }}
+                    {{ form.shouter(class="form-select") }}
+                </div>
+                
+                <!-- Attendees Checkboxes -->
+                <div class="mb-3">
+                    {{ form.attendees.label(class="form-label") }}
+                    <div class="list-group">
+                        <!-- Select All Checkbox -->
+                        <div class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="select-all">
+                                <label class="form-check-label stretched-link" for="select-all">
+                                    Select All
+                                </label>
+                            </div>
+                        </div>
+                        {% for value, label in form.attendees.choices %}
+                            <div class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="{{ form.attendees.name }}" id="attendee-{{ value }}" value="{{ value }}" {% if value in form.attendees.data %}checked{% endif %}>
+                                    <label class="form-check-label stretched-link" for="attendee-{{ value }}">
+                                        {{ label }}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Date Picker -->
+                <div class="mb-3 position-relative">
+                    {{ form.date.label(class="form-label") }}
+                    {{ form.date(class="form-control", id="datepicker") }}
+                </div>
+                
+                <!-- Coffee Shop Dropdown -->
+                <div class="mb-3">
+                    {{ form.coffee_shop.label(class="form-label") }}
+                    {{ form.coffee_shop(class="form-select") }}
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100">{{ form.submit.label.text }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Select All functionality and Datepicker initialization -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectAllCheckbox = document.getElementById('select-all');
+        var attendeeCheckboxes = document.querySelectorAll('input[name="{{ form.attendees.name }}"]');
+        selectAllCheckbox.addEventListener('change', function() {
+            attendeeCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+        // Initialize Bootstrap Datepicker
+        $('#datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+    });
+</script>
+{% endblock %}

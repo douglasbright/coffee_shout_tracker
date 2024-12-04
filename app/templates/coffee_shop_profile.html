@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ coffee_shop.name }}</h2>
+    {% if coffee_shop.address %}
+        <p>Address: {{ coffee_shop.address }}</p>
+    {% else %}
+        <p>No address provided.</p>
+    {% endif %}
+
+    <h3 class="h4 mt-4">Shouts at this Coffee Shop</h3>
+    <div class="list-group">
+        {% for shout_round in shout_rounds %}
+            <!-- Shout Round Card -->
+            <div class="card mb-2 bg-light">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title h6 mb-0">
+                        <a href="{{ url_for('shout.shout_profile', shout_id=shout_round.shout.id) }}" class="text-body text-decoration-none">
+                            {{ shout_round.shout.name }}
+                        </a>
+                    </h5>
+                    <h6 class="card-subtitle mb-0 text-muted small">
+                        {{ shout_round.date.strftime('%a %d/%m/%Y') }}
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <p class="card-text small">{{ shout_round.shout.description }}</p>
+                    
+                    <!-- Shouter and Attendees Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-6 d-flex flex-column align-items-center">
+                            <h6 class="h6">Shouter:</h6>
+                            <div class="d-flex flex-column align-items-center mb-1">
+                                <a href="{{ url_for('profile.profile_view', user_id=shout_round.shouter.id) }}" class="text-body text-decoration-none">
+                                    <i class="bi {{ shout_round.shouter.avatar_icon }} mb-2" style="font-size: 3rem;"></i>
+                                </a>
+                                <span class="small">
+                                    <a href="{{ url_for('profile.profile_view', user_id=shout_round.shouter.id) }}" class="text-body text-decoration-none">
+                                        {{ shout_round.shouter.username }}
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="h6">Attendees:</h6>
+                            <div>
+                                {% for attendee in shout_round.attendees %}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <a href="{{ url_for('profile.profile_view', user_id=attendee.id) }}" class="text-body text-decoration-none">
+                                            <i class="bi {{ attendee.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                        </a>
+                                        <span class="small">
+                                            <a href="{{ url_for('profile.profile_view', user_id=attendee.id) }}" class="text-body text-decoration-none">
+                                                {{ attendee.username }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shout Round ID Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <h6 class="h6">Shout Round ID:</h6>
+                            <div class="d-flex flex-column align-items-center mb-1">
+                                <a href="{{ url_for('shout.edit_shout_round', shout_round_id=shout_round.id) }}" class="text-body text-decoration-none">
+                                    {{ shout_round.id }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coffee Shop Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <h6 class="h6">Coffee Shop:</h6>
+                            <div class="d-flex flex-column align-items-center mb-1">
+                                {% if shout_round.coffee_shop %}
+                                    <a href="{{ url_for('coffee_shop.coffee_shop_profile', coffee_shop_id=shout_round.coffee_shop.id) }}" class="text-body text-decoration-none">
+                                        {{ shout_round.coffee_shop.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No coffee shop was recorded.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reactions Section -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="reactions">
+                            <h6 class="h6">Other Users' Reactions:</h6>
+                            <div>
+                                {% for reaction in shout_round.reactions %}
+                                    <i class="{{ reaction.emoji }} me-2" title="{{ reaction.user.username }}" style="font-size: 1.2rem;"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="reactions">
+                            <h6 class="h6">Your Reactions:</h6>
+                            {% set user_reaction = shout_round.reactions|selectattr('user_id', 'equalto', current_user.id)|first %}
+                            <form class="reaction-form" data-shout-round-id="{{ shout_round.id }}">
+                                {% for choice in reaction_form.reaction.choices %}
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm reaction-btn {% if user_reaction and user_reaction.emoji == choice[0] %}active{% endif %}" data-reaction="{{ choice[0] }}">
+                                        <i class="{{ choice[0] }}"></i>
+                                    </button>
+                                {% endfor %}
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    {% if shout_round.shout.comments_public or current_user in shout_round.shout.participants %}
+                    <div class="comments mb-3">
+                        <h6 class="h6">Comments:</h6>
+                        <ul class="list-group mb-3">
+                            {% for comment in shout_round.comments[-1:-5:-1] %}
+                                <li class="list-group-item">
+                                    <div class="d-flex align-items-start">
+                                        <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                            <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                        </a>
+                                        <div class="flex-grow-1 ms-2">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>
+                                                    <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                        {{ comment.user.username }}
+                                                    </a>
+                                                </strong>
+                                                <div class="small text-muted ms-auto">{{ comment.created_at|time_since }} ago</div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="small text-muted">{{ comment.text }}</div>
+                                                {% if comment.user_id == current_user.id %}
+                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCommentModal{{ comment.id }}" class="ms-auto">
+                                                        <i class="bi bi-trash text-danger ms-2" style="font-size: 1.2rem;"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mt-2">
+                                        {% set user_like = comment.likes|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                        <i class="bi bi-heart{{ '-fill' if user_like else '' }} like-icon" data-like="{{ 'unlike' if user_like else 'like' }}" data-comment-id="{{ comment.id }}" style="cursor: pointer;"></i>
+                                        <span class="small ms-2">{{ comment.likes|length }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if shout_round.comments|length > 4 %}
+                            <a href="#collapseComments{{ shout_round.id }}" class="see-all-comments" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseComments{{ shout_round.id }}">
+                                See all {{ shout_round.comments|length }} comments
+                            </a>
+                            <div class="collapse" id="collapseComments{{ shout_round.id }}">
+                                <ul class="list-group mt-3">
+                                    {% for comment in shout_round.comments[4::-1] %}
+                                        <li class="list-group-item">
+                                            <div class="d-flex align-items-start justify-content-between">
+                                                <div class="d-flex align-items-start">
+                                                    <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                        <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                                    </a>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between">
+                                                            <strong>
+                                                                <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                                    {{ comment.user.username }}
+                                                                </a>
+                                                            </strong>
+                                                            <div class="small text-muted ms-auto">{{ comment.created_at|time_since }} ago</div>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="small text-muted">{{ comment.text }}</div>
+                                                            {% if comment.user_id == current_user.id %}
+                                                                <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCommentModal{{ comment.id }}" class="ms-auto">
+                                                                    <i class="bi bi-trash text-danger ms-2" style="font-size: 1.2rem;"></i>
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mt-2">
+                                                {% set user_like = comment.likes|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                                <i class="bi bi-heart{{ '-fill' if user_like else '' }} like-icon" data-like="{{ 'unlike' if user_like else 'like' }}" data-comment-id="{{ comment.id }}" style="cursor: pointer;"></i>
+                                                <span class="small ms-2">{{ comment.likes|length }}</span>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Include the Delete Comment Modal -->
+                    {% include '_delete_comment_modal.html' %}
+                    
+                    <form class="add-comment-form" data-shout-round-id="{{ shout_round.id }}">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Add a comment" name="comment">
+                            <button class="btn btn-primary" type="submit">Comment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Include the JavaScript file -->
+<script src="{{ url_for('static', filename='js/activity.js') }}"></script>
+{% endblock %}

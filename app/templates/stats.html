@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Coffee Purchase Stats for {{ shout.name }}</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    {% for user in users %}
+                        <th>
+                            <a href="{{ url_for('profile.profile_view', user_id=user.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ user.username }}
+                            </a>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchaser in users %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('profile.profile_view', user_id=purchaser.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ purchaser.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ purchaser.username }}
+                            </a>
+                        </td>
+                        {% for recipient in users %}
+                            <td>{{ coffee_purchases[purchaser.id][recipient.id] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Coffee Purchase Ratios</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    {% for user in users %}
+                        <th>
+                            <a href="{{ url_for('profile.profile_view', user_id=user.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ user.username }}
+                            </a>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchaser in users %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('profile.profile_view', user_id=purchaser.id) }}" class="text-body text-decoration-none">
+                                <i class="bi {{ purchaser.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                {{ purchaser.username }}
+                            </a>
+                        </td>
+                        {% for recipient in users %}
+                            <td>{{ coffee_ratios[purchaser.id][recipient.id] | round(2) }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

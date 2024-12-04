@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Shout Tracker</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar (Fixed Top) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Coffee Shout Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if current_user.is_authenticated %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'activity.activity_feed' %}active{% endif %}" href="{{ url_for('activity.activity_feed') }}">Activity Feed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'shout.join_shout' %}active{% endif %}" href="{{ url_for('shout.join_shout') }}">Join a Shout</a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['profile.manage_users', 'shout.manage_shouts', 'coffee_shop.add_coffee_shop'] %}active{% endif %}" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Manage
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="manageDropdown">
+                            {% if current_user.is_admin %}
+                            <li><a class="dropdown-item {% if request.endpoint == 'profile.manage_users' %}active{% endif %}" href="{{ url_for('profile.manage_users') }}">Manage Users</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item {% if request.endpoint == 'shout.manage_shouts' %}active{% endif %}" href="{{ url_for('shout.manage_shouts') }}">Manage Shouts</a></li>
+                            <li><a class="dropdown-item {% if request.endpoint == 'coffee_shop.add_coffee_shop' %}active{% endif %}" href="{{ url_for('coffee_shop.add_coffee_shop') }}">Create a Coffee Shop</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'shout.create_shout' %}active{% endif %}" href="{{ url_for('shout.create_shout') }}">Create a Shout</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['profile.profile_view', 'profile.settings_profile'] %}active{% endif %}" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Profile
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item {% if request.endpoint == 'profile.profile_view' %}active{% endif %}" href="{{ url_for('profile.profile_view', user_id=current_user.id) }}">My Profile</a></li>
+                            <li><a class="dropdown-item {% if request.endpoint == 'profile.settings_profile' %}active{% endif %}" href="{{ url_for('profile.settings_profile') }}">Settings</a></li>
+                        </ul>
+                    </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Admin Dashboard</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
+                </ul>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Full-width container (only applied when the block is used) -->
+    {% block fullwidth %}{% endblock %}
+    
+    <!-- Main Content Layout with Optional Sidebar and Gutter -->
+    <div class="container-fluid d-flex justify-content-center" style="padding-top: 70px; padding-bottom: 10px; max-width: 1200px;">
+        <div class="row flex-nowrap w-100">
+            <!-- Sidebar (shown by default on larger screens) -->
+            {% if current_user.is_authenticated and not hide_sidebar %}
+            <div class="col-md-3 col-lg-2 d-none d-md-block bg-light p-3 vh-100 sticky-top" id="sidebar" style="top: 70px;">
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        <a href="{{ url_for('profile.profile_view', user_id=current_user.id) }}" class="text-decoration-none text-dark">
+                            <i class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 3rem;"></i>
+                        </a>
+
+                        
+                        <h5 class="card-title mt-2"><a href="{{ url_for('profile.profile_view', user_id=current_user.id) }}" class="text-decoration-none text-dark" style="color: inherit;">{{ current_user.username }}</a></h5>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <p class="card-text">{% if current_user.is_authenticated %}Welcome back, {{ current_user.username }}! Here you can manage your profile and shouts.{% else %}Welcome, Guest! Please log in to manage your profile and shouts.{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main Content Area (with gutter) -->
+            <div class="col-12 col-md-9 col-lg-10 ps-md-4 pb-4 mx-auto" id="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Block for child templates to inject content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+<!-- Regular Footer -->
+<footer class="bg-light py-3 mt-auto">
+    <div class="container text-center">
+        <span class="text-muted">
+            {% if quote %}
+                "{{ quote.text }}" – {{ quote.author or 'Anonymous' }}
+            {% else %}
+                "No inspirational quotes available at the moment."
+            {% endif %}
+        </span>
+    </div>
+</footer>
+
+
+    <!-- Bootstrap JS and Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/modal_validation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/validation.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if the form has errors and keep the modal open
+            var activeModal = document.querySelector('.modal[data-bs-backdrop="static"]');
+            if (activeModal) {
+                var modal = new bootstrap.Modal(activeModal);
+                modal.show();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <header>
+        <h2>Admin Page for Shout: {{ shout.name }}</h2>
+    </header>
+    <!-- Edit Shout Details Table -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Edit Shout Details</h5>
+            <table class="table">
+                <tbody>
+                    <!-- Shout Name -->
+                    <tr>
+                        <td><strong>Shout Name</strong></td>
+                        <td>{{ shout.name }}</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editShoutNameModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Workplace -->
+                    <tr>
+                        <td><strong>Workplace</strong></td>
+                        <td>{{ shout.workplace }}</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editWorkplaceModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Private Shout -->
+                    <tr>
+                        <td><strong>Private Shout</strong></td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="privateShoutToggle" {% if shout.is_private %}checked{% endif %} onchange="togglePrivateShout({{ shout.id }}, this.checked)">
+                                <label class="form-check-label" for="privateShoutToggle"></label>
+                            </div>
+                        </td>
+                        <td class="text-end"></td>
+                    </tr>
+                    <!-- Comments Visibility -->
+                    <tr>
+                        <td><strong>Comments Visibility</strong></td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="commentsVisibilityToggle" {% if shout.comments_public %}checked{% endif %} onchange="toggleCommentsVisibility({{ shout.id }}, this.checked)">
+                                <label class="form-check-label" for="commentsVisibilityToggle"></label>
+                            </div>
+                        </td>
+                        <td class="text-end"></td>
+                    </tr>
+                    <!-- PIN Options -->
+                    {% if shout.pin_code_hash %}
+                    <!-- Update PIN -->
+                    <tr>
+                        <td><strong>Update PIN</strong></td>
+                        <td>******</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUpdatePinModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Remove PIN -->
+                    <tr>
+                        <td><strong>Remove PIN</strong></td>
+                        <td>******</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editRemovePinModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <!-- Add PIN -->
+                    <tr>
+                        <td><strong>Add PIN</strong></td>
+                        <td></td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editAddPinModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Delete Shout Button -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Danger Zone</h5>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteShoutModal">
+                Delete Shout
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Include Modals -->
+{% include 'edit_shout_name_modal.html' %}
+{% include 'edit_workplace_modal.html' %}
+{% include 'edit_remove_pin_modal.html' %}
+{% include 'edit_update_pin_modal.html' %}
+{% include 'edit_add_pin_modal.html' %}
+
+<!-- Delete Shout Confirmation Modal -->
+<div class="modal fade" id="deleteShoutModal" tabindex="-1" aria-labelledby="deleteShoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteShoutModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this shout? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('shout.delete_shout', shout_id=shout.id) }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to handle the toggle switches -->
+<script>
+    function togglePrivateShout(shoutId, isPrivate) {
+        fetch(`/shout/${shoutId}/toggle_private_shout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_private: isPrivate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Failed to update private shout status.');
+                document.getElementById('privateShoutToggle').checked = !isPrivate;
+            }
+        });
+    }
+
+    function toggleCommentsVisibility(shoutId, commentsPublic) {
+        fetch(`/shout/${shoutId}/toggle_comments_visibility`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ comments_public: commentsPublic })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Failed to update comments visibility.');
+                document.getElementById('commentsVisibilityToggle').checked = !commentsPublic;
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ user.username }}'s Profile</h2>
+
+    <!-- User Information -->
+    <div class="mb-4">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+    </div>
+
+    <!-- Display the shouts the user is part of -->
+    <div class="mb-4">
+        <h3>Shouts Participated In</h3>
+        {% if user_shouts %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Shout Name</th>
+                            <th>Workplace</th>
+                            <th>Admin</th>
+                            <th>Participant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for shout, is_admin, is_active in user_shouts %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('shout.shout_profile', shout_id=shout.id) }}" class="text-primary text-decoration-none">
+                                    {{ shout.name }}
+                                </a>
+                            </td>
+                            <td>{{ shout.workplace }}</td>
+                            <td>{{ 'Yes' if is_admin else 'No' }}</td>
+                            <td>{{ 'Yes' if is_active else 'No' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>This user is not currently part of any shouts.</p>
+        {% endif %}
+    </div>
+
+    <!-- Future Stats Section (placeholder) -->
+    <div>
+        <h3>Future Stats (e.g., Coffees Purchased)</h3>
+        <p>Stats will be displayed here.</p>
+    </div>
+</div>
+{% endblock %}

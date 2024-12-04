@@ -1,0 +1,19 @@
+<div class="modal fade" id="updateUsernameModal{{ user.id }}" tabindex="-1" aria-labelledby="updateUsernameLabel{{ user.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateUsernameLabel{{ user.id }}">Update Username for {{ user.username }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('profile.update_user_name', user_id=user.id) }}">
+                    <div class="mb-3">
+                        <label for="username{{ user.id }}" class="form-label">New Username</label>
+                        <input type="text" name="username" class="form-control" id="username{{ user.id }}" value="{{ user.username }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Username</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

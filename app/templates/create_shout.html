@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create a New Shout</h2>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.hidden_tag() }}
+
+                <!-- Shout Name Field with AJAX validation -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">{{ form.name.label }}</label>
+                    {{ form.name(class="form-control", id="name", placeholder="Enter shout name", required=True) }}
+                    <div class="invalid-feedback" id="name-feedback">
+                        Please provide a valid shout name.
+                    </div>
+                </div>
+
+                <!-- Workplace Field -->
+                <div class="mb-3">
+                    <label for="workplace" class="form-label">{{ form.workplace.label }}</label>
+                    {{ form.workplace(class="form-control", id="workplace", placeholder="Enter workplace", required=True) }}
+                    <div class="invalid-feedback">
+                        Please provide a valid workplace.
+                    </div>
+                </div>
+
+                <!-- Private Shout Checkbox -->
+                <div class="form-check mb-3">
+                    {{ form.is_private(class="form-check-input", id="is_private") }}
+                    <label for="is_private" class="form-check-label">{{ form.is_private.label }}</label>
+                </div>
+
+                <!-- PIN Code Input -->
+                <div class="mb-3">
+                    <label for="pin_code" class="form-label">{{ form.pin_code.label }}</label>
+                    {{ form.pin_code(class="form-control", id="pin_code", placeholder="Enter PIN code (optional)") }}
+                    <div class="invalid-feedback">
+                        Please provide a valid PIN code (min 4, max 10 characters).
+                    </div>
+                </div>
+
+                <!-- Confirm PIN Code Input -->
+                <div class="mb-3">
+                    <label for="confirm_pin_code" class="form-label">Confirm PIN Code</label>
+                    {{ form.confirm_pin_code(class="form-control", id="confirm_pin_code", placeholder="Confirm PIN code") }}
+                    <div class="invalid-feedback">
+                        PIN codes do not match.
+                    </div>
+                </div>
+
+                <!-- Join Shout Checkbox -->
+                <div class="form-check mb-3">
+                    {{ form.join_shout(class="form-check-input", id="join_shout") }}
+                    <label for="join_shout" class="form-check-label">{{ form.join_shout.label }}</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100" id="submit-btn">Create Shout</button>  <!-- Full-width button -->
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // Live validation function
+    function validateField(field) {
+        if (field.checkValidity()) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+        }
+        checkFormValidity();
+    }
+
+    // Check form validity and enable/disable the submit button
+    function checkFormValidity() {
+        var isValid = form.checkValidity() && pinCode.value === confirmPinCode.value && !shoutNameField.classList.contains('is-invalid');
+        submitBtn.disabled = !isValid;
+    }
+
+    // Select the form and submit button
+    var form = document.querySelector('.needs-validation');
+    var submitBtn = document.getElementById('submit-btn');
+
+    // Initially disable the submit button
+    submitBtn.disabled = true;
+
+    // Get the form fields to be validated live
+    var inputs = form.querySelectorAll('input, textarea, select');
+
+    // Add event listeners for real-time validation
+    inputs.forEach(function (input) {
+        input.addEventListener('input', function () {
+            validateField(input);
+        });
+    });
+
+    // PIN and Confirm PIN match validation
+    var pinCode = document.getElementById('pin_code');
+    var confirmPinCode = document.getElementById('confirm_pin_code');
+
+    function validatePinMatch() {
+        if (pinCode.value && confirmPinCode.value && pinCode.value !== confirmPinCode.value) {
+            confirmPinCode.setCustomValidity('PIN codes do not match.');
+            confirmPinCode.classList.remove('is-valid');
+            confirmPinCode.classList.add('is-invalid');
+        } else if (confirmPinCode.value && pinCode.value === confirmPinCode.value) {
+            confirmPinCode.setCustomValidity('');  // Clear the custom validity
+            confirmPinCode.classList.remove('is-invalid');
+            confirmPinCode.classList.add('is-valid');  // Add is-valid class explicitly
+        } else {
+            confirmPinCode.classList.remove('is-valid', 'is-invalid');  // Clear both classes if no input
+        }
+        checkFormValidity();  // Call checkFormValidity on PIN input
+    }
+
+    pinCode.addEventListener('input', validatePinMatch);
+    confirmPinCode.addEventListener('input', validatePinMatch);
+
+    // Add validation for submit event
+    form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // AJAX request to check shout name uniqueness
+    var shoutNameField = document.getElementById('name');
+    var nameFeedback = document.getElementById('name-feedback');
+
+    shoutNameField.addEventListener('input', function () {
+        if (shoutNameField.value.length >= 2) {
+            fetch('{{ url_for("main.check_shout_name") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: shoutNameField.value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    shoutNameField.classList.add('is-invalid');
+                    shoutNameField.classList.remove('is-valid');
+                    nameFeedback.textContent = 'Shout name is unavailable.';
+                } else {
+                    shoutNameField.classList.remove('is-invalid');
+                    shoutNameField.classList.add('is-valid');
+                    nameFeedback.textContent = '';
+                }
+                checkFormValidity();  // Call checkFormValidity after shout name validation
+            });
+        } else {
+            shoutNameField.classList.remove('is-valid', 'is-invalid');
+            nameFeedback.textContent = '';
+            checkFormValidity();
+        }
+    });
+
+})();
+
+
+
+</script>
+{% endblock %}

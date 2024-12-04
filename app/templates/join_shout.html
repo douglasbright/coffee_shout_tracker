@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Join a Shout</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form id="joinShoutForm">
+                
+                <!-- Shout Name Input -->
+                <div class="mb-3">
+                    <label for="shoutSearch" class="form-label">Shout Name</label>
+                    <input type="text" class="form-control" id="shoutSearch" name="shout_name" onkeyup="searchShouts()" autocomplete="off">
+                </div>
+
+                <!-- Suggestion Box for Search Results -->
+                <ul id="shoutSuggestions" class="list-group"></ul>
+
+                <!-- Join Shout Button -->
+                <button type="button" class="btn btn-primary" onclick="attemptJoinShout()">Join Shout</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- PIN Code Modal -->
+<div class="modal fade" id="pinModal" tabindex="-1" aria-labelledby="pinModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pinModalLabel">Enter PIN Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="pinForm">
+                    <div class="mb-3">
+                        <label for="pinCode" class="form-label">PIN Code</label>
+                        <input type="password" class="form-control" id="pinCode" name="pin_code" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitPin()">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to handle live search and form submission -->
+<script>
+    function searchShouts() {
+        const searchValue = document.getElementById('shoutSearch').value;
+
+        if (searchValue.length > 0) {
+            fetch(`/search_shouts?q=${searchValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    let suggestionBox = document.getElementById('shoutSuggestions');
+                    suggestionBox.innerHTML = '';  // Clear previous suggestions
+
+                    data.forEach(shoutName => {
+                        let suggestionItem = document.createElement('li');
+                        suggestionItem.textContent = shoutName;
+                        suggestionItem.classList.add("list-group-item", "list-group-item-action");
+                        suggestionItem.onclick = () => {
+                            document.getElementById('shoutSearch').value = shoutName;  // Set search box value
+                            suggestionBox.innerHTML = '';  // Clear suggestions
+                        };
+                        suggestionBox.appendChild(suggestionItem);
+                    });
+                });
+        } else {
+            document.getElementById('shoutSuggestions').innerHTML = '';  // Clear suggestions if no input
+        }
+    }
+
+    function attemptJoinShout() {
+        const shoutName = document.getElementById('shoutSearch').value;
+        fetch(`/check_shout_pin?shout_name=${shoutName}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.requires_pin) {
+                    // Show the PIN modal
+                    const pinModal = new bootstrap.Modal(document.getElementById('pinModal'));
+                    pinModal.show();
+                } else {
+                    // Submit the form without PIN
+                    joinShoutWithoutPin(shoutName);
+                }
+            });
+    }
+
+    function joinShoutWithoutPin(shoutName) {
+        fetch(`/join_shout_without_pin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ shout_name: shoutName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function submitPin() {
+        const pinCode = document.getElementById('pinCode').value;
+        const shoutName = document.getElementById('shoutSearch').value;
+        fetch(`/join_shout_with_pin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ shout_name: shoutName, pin_code: pinCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

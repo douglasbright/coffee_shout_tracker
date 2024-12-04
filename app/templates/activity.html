@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="h4">Activity</h2>
+    
+    <!-- Filter Section -->
+    <div class="d-flex justify-content-start mb-3">
+        <form method="GET" action="{{ url_for('activity.activity_feed') }}">
+            <div class="input-group" style="width: 400px;">
+                <select class="form-select form-select-sm" name="shout_id" onchange="this.form.submit()">
+                    <option value="">All Shouts</option>
+                    {% for shout in shouts %}
+                        <option value="{{ shout.id }}" {% if shout.id == selected_shout_id %}selected{% endif %}>{{ shout.name }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-sm" name="sort_by" onchange="this.form.submit()">
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                    <option value="shouter" {% if sort_by == 'shouter' %}selected{% endif %}>Shouter</option>
+                    <option value="round_number" {% if sort_by == 'round_number' %}selected{% endif %}>Round Number</option>
+                </select>
+            </div>
+        </form>
+    </div>
+    
+    <div class="list-group">
+        {% for shout_round in shout_rounds %}
+            <!-- Shout Round Card -->
+            <div class="card mb-2 bg-light">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title h6 mb-0">
+                        <a href="{{ url_for('shout.shout_profile', shout_id=shout_round.shout.id) }}" class="text-body text-decoration-none">
+                            {{ shout_round.shout.name }}
+                        </a>
+                    </h5>
+                    <h6 class="card-subtitle mb-0 text-muted small">
+                        {{ shout_round.date.strftime('%a %d/%m/%Y') }}
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <p class="card-text small">{{ shout_round.shout.description }}</p>
+                    
+                    <!-- Shouter and Attendees Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-6 d-flex flex-column align-items-center">
+                            <h6 class="h6">Shouter:</h6>
+                            <div class="d-flex flex-column align-items-center mb-1">
+                                <a href="{{ url_for('profile.profile_view', user_id=shout_round.shouter.id) }}" class="text-body text-decoration-none">
+                                    <i class="bi {{ shout_round.shouter.avatar_icon }} mb-2" style="font-size: 3rem;"></i>
+                                </a>
+                                <span class="small">
+                                    <a href="{{ url_for('profile.profile_view', user_id=shout_round.shouter.id) }}" class="text-body text-decoration-none">
+                                        {{ shout_round.shouter.username }}
+                                    </a>
+                                </span>
+                            </div>
+                            
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="h6">Attendees:</h6>
+                            <div>
+                                {% for attendee in shout_round.attendees %}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <a href="{{ url_for('profile.profile_view', user_id=attendee.id) }}" class="text-body text-decoration-none">
+                                            <i class="bi {{ attendee.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                        </a>
+                                        <span class="small">
+                                            <a href="{{ url_for('profile.profile_view', user_id=attendee.id) }}" class="text-body text-decoration-none">
+                                                {{ attendee.username }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <h6 class="h6 mt-3">Missed Shouts:</h6>
+                            <div>
+                                {% for missed_shout in missed_shouts %}
+                                    {% if missed_shout.shout_id == shout_round.shout_id and missed_shout.round_number == shout_round.round_number %}
+                                        <div class="d-flex align-items-center mb-1">
+                                            <a href="{{ url_for('profile.profile_view', user_id=missed_shout.user.id) }}" class="text-body text-decoration-none">
+                                                <i class="bi {{ missed_shout.user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                                            </a>
+                                            <span class="small">
+                                                <a href="{{ url_for('profile.profile_view', user_id=missed_shout.user.id) }}" class="text-body text-decoration-none">
+                                                    {{ missed_shout.user.username }}
+                                                </a>
+                                            </span>
+                                            <span class="text-muted small ms-2">(Missed)</span>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shout Round ID Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <h6 class="h6">
+                                <a href="{{ url_for('shout.edit_shout_round', shout_round_id=shout_round.id) }}" class="text-body text-decoration-none">
+                                    Shout Round {{ shout_round.round_number }}
+                                </a>
+                            </h6>
+                        </div>
+                    </div>
+
+                    <!-- Coffee Shop Section -->
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <h6 class="h6">Coffee Shop:</h6>
+                            <div class="d-flex flex-column align-items-center mb-1">
+                                {% if shout_round.coffee_shop %}
+                                    <a href="{{ url_for('coffee_shop.coffee_shop_profile', coffee_shop_id=shout_round.coffee_shop.id) }}" class="text-body text-decoration-none">
+                                        {{ shout_round.coffee_shop.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No coffee shop was recorded. <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#addCoffeeShopModal{{ shout_round.id }}">Add one now</a></span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Coffee Shop Modal -->
+                    <div class="modal fade" id="addCoffeeShopModal{{ shout_round.id }}" tabindex="-1" aria-labelledby="addCoffeeShopModalLabel{{ shout_round.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addCoffeeShopModalLabel{{ shout_round.id }}">Add Coffee Shop</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="addCoffeeShopForm{{ shout_round.id }}" class="add-coffee-shop-form" data-shout-round-id="{{ shout_round.id }}">
+                                        <div class="mb-3">
+                                            <label for="coffeeShopSelect{{ shout_round.id }}" class="form-label">Select Coffee Shop</label>
+                                            <select class="form-select" id="coffeeShopSelect{{ shout_round.id }}" name="coffee_shop_id">
+                                                <option value="">Select a coffee shop</option>
+                                                {% for shop in coffee_shops %}
+                                                    <option value="{{ shop.id }}">{{ shop.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reactions Section -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="reactions">
+                            <h6 class="h6">Other Users' Reactions:</h6>
+                            <div>
+                                {% for reaction in shout_round.reactions %}
+                                    <i class="{{ reaction.emoji }} me-2" title="{{ reaction.user.username }}" style="font-size: 1.2rem;"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="reactions">
+                            <h6 class="h6">Your Reactions:</h6>
+                            {% set user_reaction = shout_round.reactions|selectattr('user_id', 'equalto', current_user.id)|first %}
+                            <form class="reaction-form" data-shout-round-id="{{ shout_round.id }}">
+                                {% for choice in reaction_form.reaction.choices %}
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm reaction-btn {% if user_reaction and user_reaction.emoji == choice[0] %}active{% endif %}" data-reaction="{{ choice[0] }}">
+                                        <i class="{{ choice[0] }}"></i>
+                                    </button>
+                                {% endfor %}
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments mb-3">
+                        <h6 class="h6">Comments:</h6>
+                        <ul class="list-group mb-3">
+                            {% for comment in shout_round.comments[-1:-5:-1] %}
+                                <li class="list-group-item">
+                                    <div class="d-flex align-items-start">
+                                        <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                            <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                        </a>
+                                        <div class="flex-grow-1 ms-2">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>
+                                                    <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                        {{ comment.user.username }}
+                                                    </a>
+                                                </strong>
+                                                <div class="small text-muted ms-auto">{{ comment.created_at|time_since }} ago</div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="small text-muted">{{ comment.text }}</div>
+                                                {% if comment.user_id == current_user.id %}
+                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCommentModal{{ comment.id }}" class="ms-auto">
+                                                        <i class="bi bi-trash text-danger ms-2" style="font-size: 1.2rem;"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mt-2">
+                                        {% set user_like = comment.likes|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                        <i class="bi bi-heart{{ '-fill' if user_like else '' }} like-icon" data-like="{{ 'unlike' if user_like else 'like' }}" data-comment-id="{{ comment.id }}" style="cursor: pointer;"></i>
+                                        <span class="small ms-2">{{ comment.likes|length }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if shout_round.comments|length > 4 %}
+                            <a href="#collapseComments{{ shout_round.id }}" class="see-all-comments" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseComments{{ shout_round.id }}">
+                                See all {{ shout_round.comments|length }} comments
+                            </a>
+                            <div class="collapse" id="collapseComments{{ shout_round.id }}">
+                                <ul class="list-group mt-3">
+                                    {% for comment in shout_round.comments[4::-1] %}
+                                        <li class="list-group-item">
+                                            <div class="d-flex align-items-start justify-content-between">
+                                                <div class="d-flex align-items-start">
+                                                    <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                        <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                                    </a>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between">
+                                                            <strong>
+                                                                <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                                    {{ comment.user.username }}
+                                                                </a>
+                                                            </strong>
+                                                            <div class="small text-muted ms-auto">{{ comment.created_at|time_since }} ago</div>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="small text-muted">{{ comment.text }}</div>
+                                                            {% if comment.user_id == current_user.id %}
+                                                                <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCommentModal{{ comment.id }}" class="ms-auto">
+                                                                    <i class="bi bi-trash text-danger ms-2" style="font-size: 1.2rem;"></i>
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mt-2">
+                                                {% set user_like = comment.likes|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                                <i class="bi bi-heart{{ '-fill' if user_like else '' }} like-icon" data-like="{{ 'unlike' if user_like else 'like' }}" data-comment-id="{{ comment.id }}" style="cursor: pointer;"></i>
+                                                <span class="small ms-2">{{ comment.likes|length }}</span>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Include the Delete Comment Modal -->
+                    {% include '_delete_comment_modal.html' %}
+                    
+                    <form class="add-comment-form" data-shout-round-id="{{ shout_round.id }}">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Add a comment" name="comment">
+                            <button class="btn btn-primary" type="submit">Comment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Include the JavaScript file -->
+<script src="{{ url_for('static', filename='js/activity.js') }}"></script>
+{% endblock %}

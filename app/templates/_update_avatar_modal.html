@@ -1,0 +1,53 @@
+<div class="modal fade" id="updateAvatarModal" tabindex="-1" aria-labelledby="updateAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateAvatarModalLabel">Update Avatar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Current Avatar Preview -->
+                <div class="text-center mb-3">
+                    <h6>Selected Avatar:</h6>
+                    <i id="avatarPreview" class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 4rem; color: inherit;"></i>
+                </div>
+
+                <!-- Avatar Selection Form -->
+                <form method="POST" action="{{ url_for('profile.update_user_avatar', user_id=current_user.id) }}" id="updateAvatarForm" class="needs-validation" novalidate>
+                    {{ avatar_form.hidden_tag() }}
+
+                    <!-- Avatar Icon Selection Dropdown -->
+                    <div class="mb-3">
+                        {{ avatar_form.avatar_icon.label }}
+                        <select class="form-select" id="avatarSelection" name="avatar_icon" required>
+                            {% for value, label in avatar_form.avatar_icon.choices %}
+                                <option value="{{ value }}" {% if value == current_user.avatar_icon %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select an avatar.
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Save Avatar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inline JavaScript for avatar preview -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var avatarSelection = document.getElementById('avatarSelection');  // Ensure id matches form field
+        var avatarPreview = document.getElementById('avatarPreview');
+
+        // Update the avatar preview when a new option is selected
+        avatarSelection.addEventListener('change', function() {
+            var selectedIcon = avatarSelection.value;
+            avatarPreview.className = 'bi ' + selectedIcon;  // Update preview icon class
+        });
+    });
+</script>
