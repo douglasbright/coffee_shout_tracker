@@ -53,6 +53,7 @@ def create_app():
     from .quote_routes import quote
     from .coffee_shop_routes import coffee_shop
     from .admin_routes import admin
+    from .notification_routes import notification
 
     app.register_blueprint(main)
     app.register_blueprint(activity)
@@ -62,6 +63,7 @@ def create_app():
     app.register_blueprint(quote)
     app.register_blueprint(coffee_shop)
     app.register_blueprint(admin)
+    app.register_blueprint(notification)
 
     # Register the context processor for injecting quotes
     app.context_processor(inject_quote)

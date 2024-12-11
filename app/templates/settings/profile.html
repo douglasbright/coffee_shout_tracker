@@ -77,6 +77,29 @@
             </td>
         </tr>
 
+        <!-- Notification Preferences Section -->
+        <tr>
+            <td><strong>Notification Preferences</strong></td>
+            <td>
+                <form id="notificationPreferencesForm">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyComments" {% if current_user.notify_comments %}checked{% endif %}>
+                        <label class="form-check-label" for="notifyComments">Notify me about comments</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyReactions" {% if current_user.notify_reactions %}checked{% endif %}>
+                        <label class="form-check-label" for="notifyReactions">Notify me about reactions</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyShoutUpdates" {% if current_user.notify_shout_updates %}checked{% endif %}>
+                        <label class="form-check-label" for="notifyShoutUpdates">Notify me about shout updates</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Save Preferences</button>
+                </form>
+            </td>
+            <td class="text-end"></td>
+        </tr>
+
     </tbody>
 </table>
 
@@ -135,6 +158,35 @@
                     location.reload();
                 } else {
                     alert(data.error);
+                }
+            });
+        });
+
+        // Handle notification preferences form submission
+        var notificationPreferencesForm = document.getElementById('notificationPreferencesForm');
+        notificationPreferencesForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var notifyComments = document.getElementById('notifyComments').checked;
+            var notifyReactions = document.getElementById('notifyReactions').checked;
+            var notifyShoutUpdates = document.getElementById('notifyShoutUpdates').checked;
+
+            fetch('{{ url_for("profile.update_notification_preferences") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    notify_comments: notifyComments,
+                    notify_reactions: notifyReactions,
+                    notify_shout_updates: notifyShoutUpdates
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Notification preferences updated successfully.');
+                } else {
+                    alert('Failed to update notification preferences.');
                 }
             });
         });

@@ -117,3 +117,18 @@ def update_profile_visibility():
     current_user.is_public = is_public
     db.session.commit()
     return jsonify({'success': 'Profile visibility updated successfully.'})
+
+@profile.route('/update_notification_preferences', methods=['POST'])
+@login_required
+def update_notification_preferences():
+    data = request.get_json()
+    notify_comments = data.get('notify_comments', False)
+    notify_reactions = data.get('notify_reactions', False)
+    notify_shout_updates = data.get('notify_shout_updates', False)
+    
+    current_user.notify_comments = notify_comments
+    current_user.notify_reactions = notify_reactions
+    current_user.notify_shout_updates = notify_shout_updates
+    
+    db.session.commit()
+    return jsonify({'success': 'Notification preferences updated successfully.'})
