@@ -4,22 +4,34 @@
     <h2 class="h4">Activity</h2>
     
     <!-- Filter Section -->
-    <div class="d-flex justify-content-start mb-3">
-        <form method="GET" action="{{ url_for('activity.activity_feed') }}">
-            <div class="input-group" style="width: 400px;">
-                <select class="form-select form-select-sm" name="shout_id" onchange="this.form.submit()">
-                    <option value="">All Shouts</option>
-                    {% for shout in shouts %}
-                        <option value="{{ shout.id }}" {% if shout.id == selected_shout_id %}selected{% endif %}>{{ shout.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-sm" name="sort_by" onchange="this.form.submit()">
-                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
-                    <option value="shouter" {% if sort_by == 'shouter' %}selected{% endif %}>Shouter</option>
-                    <option value="round_number" {% if sort_by == 'round_number' %}selected{% endif %}>Round Number</option>
-                </select>
-            </div>
-        </form>
+    <div class="row mb-3">
+        <div class="col-md-6 mb-2">
+            <form method="GET" action="{{ url_for('activity.activity_feed') }}" class="d-flex flex-wrap gap-2">
+                {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
+                <div class="input-group">
+                    <label class="input-group-text" for="shoutSelect">Shout</label>
+                    <select class="form-select form-select-sm" id="shoutSelect" name="shout_id" onchange="this.form.submit()">
+                        <option value="">All Shouts</option>
+                        {% for shout in shouts %}
+                            <option value="{{ shout.id }}" {% if shout.id == selected_shout_id %}selected{% endif %}>{{ shout.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 mb-2">
+            <form method="GET" action="{{ url_for('activity.activity_feed') }}" class="d-flex flex-wrap gap-2">
+                {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
+                <div class="input-group">
+                    <label class="input-group-text" for="sortSelect">Sort By</label>
+                    <select class="form-select form-select-sm" id="sortSelect" name="sort_by" onchange="this.form.submit()">
+                        <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                        <option value="shouter" {% if sort_by == 'shouter' %}selected{% endif %}>Shouter</option>
+                        <option value="round_number" {% if sort_by == 'round_number' %}selected{% endif %}>Round Number</option>
+                    </select>
+                </div>
+            </form>
+        </div>
     </div>
     
     <div class="list-group">
@@ -129,6 +141,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <form id="addCoffeeShopForm{{ shout_round.id }}" class="add-coffee-shop-form" data-shout-round-id="{{ shout_round.id }}">
+                                        {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
                                         <div class="mb-3">
                                             <label for="coffeeShopSelect{{ shout_round.id }}" class="form-label">Select Coffee Shop</label>
                                             <select class="form-select" id="coffeeShopSelect{{ shout_round.id }}" name="coffee_shop_id">
@@ -159,6 +172,7 @@
                             <h6 class="h6">Your Reactions:</h6>
                             {% set user_reaction = shout_round.reactions|selectattr('user_id', 'equalto', current_user.id)|first %}
                             <form class="reaction-form" data-shout-round-id="{{ shout_round.id }}">
+                                {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
                                 {% for choice in reaction_form.reaction.choices %}
                                     <button type="submit" class="btn btn-outline-secondary btn-sm reaction-btn {% if user_reaction and user_reaction.emoji == choice[0] %}active{% endif %}" data-reaction="{{ choice[0] }}">
                                         <i class="{{ choice[0] }}"></i>
@@ -176,7 +190,7 @@
                                 <li class="list-group-item">
                                     <div class="d-flex align-items-start">
                                         <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
-                                            <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                            <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
                                         </a>
                                         <div class="flex-grow-1 ms-2">
                                             <div class="d-flex justify-content-between">
@@ -254,6 +268,7 @@
                     {% include '_delete_comment_modal.html' %}
                     
                     <form class="add-comment-form" data-shout-round-id="{{ shout_round.id }}">
+                        {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" placeholder="Add a comment" name="comment">
                             <button class="btn btn-primary" type="submit">Comment</button>

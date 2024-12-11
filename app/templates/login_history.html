@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Login History</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Login Time</th>
+                    <th>IP Address</th>
+                    <th>User Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for login in login_history %}
+                <tr>
+                    <td>{{ login.user.username }}</td>
+                    <td>{{ login.login_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ login.ip_address }}</td>
+                    <td>{{ login.user_agent }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -179,9 +179,6 @@ class ReactionForm(FlaskForm):
         ('bi bi-hand-thumbs-down', 'Thumbs Down')
     ], validators=[DataRequired()])
 
-    class Meta:
-        csrf = False
-
 class SelectFavoriteCoffeeShopForm(FlaskForm):
     coffee_shop = SelectField('Favorite Coffee Shop', validators=[DataRequired()], coerce=int)
     submit = SubmitField('Set as Favorite')

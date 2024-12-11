@@ -52,12 +52,14 @@ def join_shout():
 def join_shout_without_pin():
     data = request.get_json()
     shout_name = data.get('shout_name')
+    print(f"Joining shout without PIN: {shout_name}")
     success, message = join_shout_without_pin_util(
         shout_name=shout_name,
         user_id=current_user.id
     )
     if not success:
-        return jsonify({'success': False, 'message': message})
+        print(f"Error: {message}")
+        return jsonify({'success': False, 'message': message}), 400
     return jsonify({'success': True, 'redirect_url': url_for('main.dashboard')})
 
 # shout_routes.py
@@ -116,14 +118,11 @@ def record_shout(shout_id):
         preselect_favorite_coffee_shop(form, current_user.id, shout_id)
     
     if form.validate_on_submit():
-        handle_form_submission(form, shout, next_round_number)
+        handle_form_submission(form, shout, next_round_number, current_user.id)
         flash('Shout recorded successfully.', 'success')
         return redirect(url_for('activity.activity_feed', shout_id=shout.id, sort_by='round_number'))
     
     return render_template('record_shout.html', form=form, shout=shout, next_round_number=next_round_number)
-    
-    return render_template('record_shout.html', form=form, shout=shout, next_round_number=next_round_number)
-
 
 @shout.route('/shout/<int:shout_id>', methods=['GET', 'POST'])
 @login_required
@@ -294,13 +293,15 @@ def join_shout_with_pin():
     data = request.get_json()
     shout_name = data.get('shout_name')
     pin_code = data.get('pin_code')
+    print(f"Joining shout with PIN: {shout_name}, {pin_code}")
     success, message = join_shout_util(
         shout_name=shout_name,
         pin_code=pin_code,
         user_id=current_user.id
     )
     if not success:
-        return jsonify({'success': False, 'message': message})
+        print(f"Error: {message}")
+        return jsonify({'success': False, 'message': message}), 400
     return jsonify({'success': True, 'redirect_url': url_for('main.dashboard')})
 
 @shout.route('/shout/<int:shout_id>/toggle_active_status', methods=['POST'])
@@ -621,4 +622,3 @@ def user_shout_settings(shout_id):
             return redirect(url_for('main.dashboard'))
     
     return render_template('user_shout_settings.html', shout=shout, shout_participation=shout_participation)
-

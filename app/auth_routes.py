@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, make_response
 from flask_login import login_required, current_user, login_user, logout_user
-from .models import User, db
+from .models import User, LoginHistory, db
 from .forms import LoginForm, RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -23,19 +23,32 @@ def register():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
+    
     last_user = request.cookies.get('last_user')
     form = LoginForm()
     if last_user and not form.email.data:
         form.email.data = last_user
+    
     if form.validate_on_submit():
         email_lower = form.email.data.lower()
         user = User.query.filter_by(email=email_lower).first()
         if user and check_password_hash(user.password, form.password.data):
             login_user(user)
+            
+            # Record login history
+            ip_address = request.remote_addr
+            user_agent = request.headers.get('User-Agent')
+            login_history = LoginHistory(user_id=user.id, ip_address=ip_address, user_agent=user_agent)
+            db.session.add(login_history)
+            db.session.commit()
+            
             response = redirect(url_for('main.dashboard'))
             response.set_cookie('last_user', user.email, max_age=60*60*24*30)
+            flash('Logged in successfully.', 'success')
             return response
-        flash('Invalid email or password.', 'danger')
+        else:
+            flash('Invalid email or password.', 'danger')
+    
     return render_template('login.html', form=form)
 
 @auth.route('/logout')

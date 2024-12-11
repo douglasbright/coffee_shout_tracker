@@ -7,7 +7,8 @@
     <div class="card">
         <div class="card-body">
             <form id="joinShoutForm">
-                
+                {{ form.hidden_tag() }}  <!-- Include CSRF token -->
+
                 <!-- Shout Name Input -->
                 <div class="mb-3">
                     <label for="shoutSearch" class="form-label">Shout Name</label>
@@ -34,6 +35,7 @@
             </div>
             <div class="modal-body">
                 <form id="pinForm">
+                    {{ form.hidden_tag() }}  <!-- Include CSRF token -->
                     <div class="mb-3">
                         <label for="pinCode" class="form-label">PIN Code</label>
                         <input type="password" class="form-control" id="pinCode" name="pin_code" required>
@@ -47,6 +49,10 @@
 
 <!-- JavaScript to handle live search and form submission -->
 <script>
+    function getCSRFToken() {
+        return document.querySelector('input[name="csrf_token"]').value;
+    }
+
     function searchShouts() {
         const searchValue = document.getElementById('shoutSearch').value;
 
@@ -93,7 +99,8 @@
         fetch(`/join_shout_without_pin`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
             },
             body: JSON.stringify({ shout_name: shoutName })
         })
@@ -113,7 +120,8 @@
         fetch(`/join_shout_with_pin`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
             },
             body: JSON.stringify({ shout_name: shoutName, pin_code: pinCode })
         })

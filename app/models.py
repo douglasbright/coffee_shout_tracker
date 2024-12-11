@@ -7,19 +7,37 @@ from sqlalchemy import event
 # User Model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     avatar_icon = db.Column(db.String(100), nullable=True, default='bi-person-circle')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_public = db.Column(db.Boolean, default=True)
+    login_history = db.relationship('LoginHistory', back_populates='user', cascade='all, delete-orphan')
 
     # Relationships
-    shouts_performed = db.relationship('ShoutRound', back_populates='shouter', cascade='all, delete')
+    shouts_performed = db.relationship('ShoutRound', back_populates='shouter', cascade='all, delete', foreign_keys='ShoutRound.shouter_id')
+    rounds_recorded = db.relationship('ShoutRound', back_populates='recorded_by', cascade='all, delete', foreign_keys='ShoutRound.recorded_by_id')
     missed_shouts = db.relationship('MissedShout', back_populates='user', cascade='all, delete')
     comment_likes = db.relationship('CommentLike', back_populates='user', cascade='all, delete-orphan')
     favorite_coffee_shops = db.relationship('UserFavoriteCoffeeShop', back_populates='user', cascade='all, delete-orphan')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+# LoginHistory Model
+class LoginHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    login_time = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45), nullable=True)  # IPv6 compatible
+    user_agent = db.Column(db.String(256), nullable=True)
+
+    user = db.relationship('User', back_populates='login_history')
 
 # CoffeeShop Model
 class CoffeeShop(db.Model):
@@ -103,7 +121,8 @@ class ShoutRound(db.Model):
     shouter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     coffee_shop_id = db.Column(db.Integer, db.ForeignKey('coffee_shop.id'), nullable=True, index=True)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    round_number = db.Column(db.Integer, nullable=False)   # Remove the default value
+    round_number = db.Column(db.Integer, nullable=False)
+    recorded_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)  # New field to record the user who recorded the shout round
     attendees = db.relationship(
         'User',
         secondary='shout_round_attendees',
@@ -114,7 +133,8 @@ class ShoutRound(db.Model):
 
     # Relationships
     shout = db.relationship('Shout', back_populates='rounds')
-    shouter = db.relationship('User', back_populates='shouts_performed')
+    shouter = db.relationship('User', foreign_keys=[shouter_id])
+    recorded_by = db.relationship('User', foreign_keys=[recorded_by_id])  # New relationship for the user who recorded the shout round
     coffee_shop = db.relationship('CoffeeShop', back_populates='shouts')
 
     def calculate_coffee_purchases(self):

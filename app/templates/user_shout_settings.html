@@ -45,7 +45,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmLeaveShoutButton">Leave Shout</button>
+                <form id="leaveShoutForm" method="POST" action="{{ url_for('shout.leave_shout', shout_id=shout.id) }}">
+                    <button type="submit" class="btn btn-danger">Leave Shout</button>
+                </form>
             </div>
         </div>
     </div>
@@ -54,6 +56,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var isActiveCheckbox = document.getElementById('isActive');
+    var commentsPublicCheckbox = document.getElementById('commentsPublic');
     
     isActiveCheckbox.addEventListener('change', function() {
         var isActive = isActiveCheckbox.checked;
@@ -74,11 +77,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    var confirmLeaveShoutButton = document.getElementById('confirmLeaveShoutButton');
-    confirmLeaveShoutButton.addEventListener('click', function() {
-        var leaveShoutForm = document.getElementById('leaveShoutForm');
-        leaveShoutForm.submit();
+
+    commentsPublicCheckbox.addEventListener('change', function() {
+        var commentsPublic = commentsPublicCheckbox.checked;
+        
+        fetch('{{ url_for("shout.toggle_comments_visibility", shout_id=shout.id) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ comments_public: commentsPublic })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Comments visibility updated successfully.');
+            } else {
+                alert('Failed to update comments visibility.');
+            }
+        });
     });
 });
 </script>

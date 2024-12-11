@@ -70,6 +70,10 @@
                     <div class="d-grid gap-2 col-12 mx-auto mt-2">
                         <a href="{{ url_for('shout.shout_calendar', shout_id=shout.id) }}" class="btn btn-info">View Calendar</a>
                     </div>
+                                <!-- View Activity Feed Button -->
+                    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+                        <a href="{{ url_for('activity.activity_feed', shout_id=shout.id) }}" class="btn btn-info">View Activity Feed</a>
+                    </div>
                 </div>
                 <!-- Participants Column -->
                 <div class="col-md-6">

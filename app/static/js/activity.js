@@ -1,6 +1,12 @@
 // app/static/js/activity.js
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Function to get CSRF token
+    function getCSRFToken() {
+        const csrfTokenInput = document.querySelector('input[name="csrf_token"]');
+        return csrfTokenInput ? csrfTokenInput.value : '';
+    }
+
     // Handle comment submission
     document.querySelectorAll('.add-comment-form').forEach(form => {
         form.addEventListener('submit', function(event) {
@@ -15,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
                 },
                 body: new URLSearchParams({ comment: commentText })
             })
@@ -42,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
                 },
                 body: new URLSearchParams({ reaction: reaction })
             })
@@ -66,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
                 }
             })
             .then(response => response.json())
@@ -89,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
                 },
                 body: new URLSearchParams({ action: likeAction })
             })
@@ -118,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
                 },
                 body: new URLSearchParams({ coffee_shop_id: coffeeShopId })
             })

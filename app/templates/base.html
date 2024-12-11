@@ -12,13 +12,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-
+    <style>
+        .navbar-brand img {
+            transition: transform 0.3s ease-in-out;
+        }
+        .navbar-brand img:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+        .navbar-nav .nav-item.active .nav-link {
+            border-bottom: 1px solid #007bff; /* Change the color to match your theme */
+        }
+        .navbar .dropdown-menu {
+            border: none;
+            background-color: #f8f9fa; /* Same background color as the navbar */
+        }
+        @media (max-width: 768px) {
+            .container-fluid.d-flex.justify-content-center {
+                width: 100vw;
+                padding-left: 0;
+                padding-right: 0;
+            }
+            .container-fluid.d-flex.justify-content-center > .row {
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar (Fixed Top) -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Coffee Shout Tracker</a>
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+                <img src="{{ url_for('static', filename='images/favicon.svg') }}" alt="Coffee Shout Tracker" width="30" height="30" class="d-inline-block align-text-top">
+                Coffee Shout Tracker
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -26,33 +54,20 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 {% if current_user.is_authenticated %}
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                    <li class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'activity.activity_feed' %}active{% endif %}" href="{{ url_for('activity.activity_feed') }}">Activity Feed</a>
+                    <li class="nav-item {% if request.endpoint == 'activity.activity_feed' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('activity.activity_feed') }}">Activity Feed</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'shout.join_shout' %}active{% endif %}" href="{{ url_for('shout.join_shout') }}">Join a Shout</a>
+                    <li class="nav-item {% if request.endpoint == 'shout.join_shout' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('shout.join_shout') }}">Join a Shout</a>
                     </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['profile.manage_users', 'shout.manage_shouts', 'coffee_shop.add_coffee_shop'] %}active{% endif %}" href="#" id="manageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Manage
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="manageDropdown">
-                            {% if current_user.is_admin %}
-                            <li><a class="dropdown-item {% if request.endpoint == 'profile.manage_users' %}active{% endif %}" href="{{ url_for('profile.manage_users') }}">Manage Users</a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item {% if request.endpoint == 'shout.manage_shouts' %}active{% endif %}" href="{{ url_for('shout.manage_shouts') }}">Manage Shouts</a></li>
-                            <li><a class="dropdown-item {% if request.endpoint == 'coffee_shop.add_coffee_shop' %}active{% endif %}" href="{{ url_for('coffee_shop.add_coffee_shop') }}">Create a Coffee Shop</a></li>
-                        </ul>
+                    <li class="nav-item {% if request.endpoint == 'shout.create_shout' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('shout.create_shout') }}">Create a Shout</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'shout.create_shout' %}active{% endif %}" href="{{ url_for('shout.create_shout') }}">Create a Shout</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['profile.profile_view', 'profile.settings_profile'] %}active{% endif %}" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item dropdown {% if request.endpoint in ['profile.profile_view', 'profile.settings_profile'] %}active{% endif %}">
+                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Profile
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="profileDropdown">
@@ -61,8 +76,8 @@
                         </ul>
                     </li>
                     {% if current_user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Admin Dashboard</a>
+                    <li class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
@@ -71,11 +86,11 @@
                 </ul>
                 {% else %}
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                    <li class="nav-item {% if request.endpoint == 'auth.login' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
+                    <li class="nav-item {% if request.endpoint == 'auth.register' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
                     </li>
                 </ul>
                 {% endif %}
@@ -97,8 +112,6 @@
                         <a href="{{ url_for('profile.profile_view', user_id=current_user.id) }}" class="text-decoration-none text-dark">
                             <i class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 3rem;"></i>
                         </a>
-
-                        
                         <h5 class="card-title mt-2"><a href="{{ url_for('profile.profile_view', user_id=current_user.id) }}" class="text-decoration-none text-dark" style="color: inherit;">{{ current_user.username }}</a></h5>
                     </div>
                 </div>

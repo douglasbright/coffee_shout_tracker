@@ -136,8 +136,6 @@ def calculate_coffee_stats(shout_id):
     return shout, users, coffee_purchases, coffee_received, coffee_ratios
 
 
-
-
 def record_missed_shout_util(shout_id, current_user):
     shout = Shout.query.get(shout_id)
     if not shout or current_user not in shout.participants:
@@ -213,13 +211,14 @@ def preselect_favorite_coffee_shop(form, user_id, shout_id):
         if favorite:
             form.coffee_shop.data = favorite.coffee_shop_id
     
-def handle_form_submission(form, shout, next_round_number):
+def handle_form_submission(form, shout, next_round_number, recorded_by_id):
         shout_round = ShoutRound(
             shout_id=shout.id,
             shouter_id=form.shouter.data,
             date=form.date.data,
             coffee_shop_id=form.coffee_shop.data if form.coffee_shop.data != 0 else None,
-            round_number=next_round_number  # Set the round number
+            round_number=next_round_number,
+            recorded_by_id=recorded_by_id  # Set the recorded_by_id field
         )
         shout_round.attendees = User.query.filter(User.id.in_(form.attendees.data)).all()
         db.session.add(shout_round)
@@ -228,13 +227,17 @@ def handle_form_submission(form, shout, next_round_number):
 
 
 def join_shout_util(shout_name, pin_code, user_id):
+    print(f"join_shout_util called with shout_name={shout_name}, pin_code={pin_code}, user_id={user_id}")
     shout_to_join = Shout.query.filter_by(name=shout_name).first()
     if not shout_to_join:
+        print("Shout not found.")
         return False, 'Shout not found.'
     if shout_to_join.pin_code_hash:
         if not shout_to_join.check_pin_code(pin_code):
+            print("Incorrect PIN code.")
             return False, 'Incorrect PIN code.'
     if user_id in [participant.id for participant in shout_to_join.participants]:
+        print("User is already a participant in this shout.")
         return False, 'You are already a participant in this shout.'
     max_sequence = db.session.query(db.func.max(shout_users.c.sequence)).filter_by(shout_id=shout_to_join.id).scalar()
     next_sequence = (max_sequence or 0) + 1
@@ -246,15 +249,20 @@ def join_shout_util(shout_name, pin_code, user_id):
     )
     db.session.execute(stmt)
     db.session.commit()
+    print(f"User {user_id} joined the shout {shout_to_join.name}.")
     return True, f'You have joined the shout "{shout_to_join.name}".'
 
 def join_shout_without_pin_util(shout_name, user_id):
+    print(f"join_shout_without_pin_util called with shout_name={shout_name}, user_id={user_id}")
     shout_to_join = Shout.query.filter_by(name=shout_name).first()
     if not shout_to_join:
+        print("Shout not found.")
         return False, 'Shout not found.'
     if shout_to_join.pin_code_hash:
+        print("This shout requires a PIN code.")
         return False, 'This shout requires a PIN code.'
     if user_id in [participant.id for participant in shout_to_join.participants]:
+        print("User is already a participant in this shout.")
         return False, 'You are already a participant in this shout.'
     max_sequence = db.session.query(db.func.max(shout_users.c.sequence)).filter_by(shout_id=shout_to_join.id).scalar()
     next_sequence = (max_sequence or 0) + 1
@@ -266,6 +274,7 @@ def join_shout_without_pin_util(shout_name, user_id):
     )
     db.session.execute(stmt)
     db.session.commit()
+    print(f"User {user_id} joined the shout {shout_to_join.name}.")
     return True, f'You have joined the shout "{shout_to_join.name}".'
 
 

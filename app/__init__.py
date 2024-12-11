@@ -25,9 +25,10 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
     # Import the User model (for login_manager and migrations)
-    from .models import User
+    from .models import User, LoginHistory
 
     # User loader function for Flask-Login
     @login_manager.user_loader
@@ -51,6 +52,7 @@ def create_app():
     from .profile_routes import profile
     from .quote_routes import quote
     from .coffee_shop_routes import coffee_shop
+    from .admin_routes import admin
 
     app.register_blueprint(main)
     app.register_blueprint(activity)
@@ -59,6 +61,7 @@ def create_app():
     app.register_blueprint(profile)
     app.register_blueprint(quote)
     app.register_blueprint(coffee_shop)
+    app.register_blueprint(admin)
 
     # Register the context processor for injecting quotes
     app.context_processor(inject_quote)

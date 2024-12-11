@@ -1,0 +1,26 @@
+<!-- app/templates/admin.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Manage Users</h3>
+            <a href="{{ url_for('profile.manage_users') }}" class="btn btn-primary">Manage Users</a>
+        </div>
+        <div class="col-md-6">
+            <h3>Manage Shouts</h3>
+            <a href="{{ url_for('shout.manage_shouts') }}" class="btn btn-primary">Manage Shouts</a>
+        </div>
+        <div class="col-md-6 mt-4">
+            <h3>Create a Coffee Shop</h3>
+            <a href="{{ url_for('coffee_shop.add_coffee_shop') }}" class="btn btn-primary">Create a Coffee Shop</a>
+        </div>
+        <div class="col-md-6 mt-4">
+            <h3>View Login History</h3>
+            <a href="{{ url_for('admin.view_login_history') }}" class="btn btn-primary">View Login History</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

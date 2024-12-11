@@ -41,47 +41,32 @@ def dashboard():
         .where(shout_users.c.user_id == current_user.id)
     ).all()
 
-    join_form = JoinShoutForm()  # The form for joining a shout
-    quotes = Quote.query.all()
-    random_quote = random.choice(quotes) if quotes else None
-
-    # Prepare shout data for the template, adding admin and admin_count
+    # Prepare shout data for the template
     user_shout_data = []
     for shout, is_active in user_shouts:
-        # Get all participants for the shout along with their admin status
-        participants_with_admin_status = db.session.execute(
-            db.select(User, shout_users.c.is_admin)
+        # Get all participants for the shout along with their admin and active status
+        participants_with_status = db.session.execute(
+            db.select(User, shout_users.c.is_admin, shout_users.c.is_active)
             .select_from(shout_users)
             .join(User, User.id == shout_users.c.user_id)
             .where(shout_users.c.shout_id == shout.id)
         ).fetchall()
-
-        # Check if the current user is an admin of the shout
-        is_admin = any(p[1] for p in participants_with_admin_status if p[0].id == current_user.id)
-
-        # Count the number of admins in the shout
-        admin_count = sum(1 for p in participants_with_admin_status if p[1])
 
         # Check if the current shouter is set, and if not, set it
         if not shout.current_shouter:
             set_next_shouter(shout.id)
             db.session.refresh(shout)  # Refresh the shout object to get the updated current_shouter
 
-        # Append the shout and admin data to the list for rendering in the template
+        # Append the shout and participant data to the list for rendering in the template
         user_shout_data.append({
             'shout': shout,
-            'participants': participants_with_admin_status,  # Passing participants with their admin status
-            'is_admin': is_admin,
-            'admin_count': admin_count,
+            'participants': participants_with_status,  # Passing participants with their admin and active status
             'is_active': is_active
         })
 
-    # Render the dashboard template with the user's shout data and join form
-    return render_template('dashboard.html', user_shouts=user_shout_data, join_form=join_form, quote=random_quote)
+    # Render the dashboard template with the user's shout data
+    return render_template('dashboard.html', user_shouts=user_shout_data)
 
-# Import the activity blueprint
-from .activity_routes import activity as activity_blueprint
-main.register_blueprint(activity_blueprint)
 
 
 @main.route('/search_shouts')
