@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db
+from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db, Notification, NotificationType
 from .forms import ReactionForm
 import logging
 
@@ -44,6 +44,16 @@ def add_comment(shout_round_id):
         comment = ShoutComment(user_id=current_user.id, shout_round_id=shout_round_id, text=comment_text)
         db.session.add(comment)
         db.session.commit()
+
+        # Create notification for new comment
+        notification = Notification(
+            user_id=shout.owner_id,
+            type=NotificationType.COMMENT,
+            message=f"{current_user.username} commented on your shout."
+        )
+        db.session.add(notification)
+        db.session.commit()
+
         return jsonify({
             'success': 'Comment added successfully.',
             'comment_id': comment.id,
@@ -85,6 +95,16 @@ def add_reaction(shout_round_id):
             reaction = ShoutReaction(user_id=current_user.id, shout_round_id=shout_round_id, emoji=reaction_type)
             db.session.add(reaction)
             db.session.commit()
+
+            # Create notification for new reaction
+            notification = Notification(
+                user_id=shout.owner_id,
+                type=NotificationType.REACTION,
+                message=f"{current_user.username} reacted to your shout."
+            )
+            db.session.add(notification)
+            db.session.commit()
+
             return jsonify({'success': 'Reaction added successfully.'}), 200
     else:
         # Log form errors for debugging

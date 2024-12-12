@@ -3,6 +3,24 @@ from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import event
+from enum import Enum
+
+# NotificationType Enum
+class NotificationType(Enum):
+    COMMENT = 'comment'
+    REACTION = 'reaction'
+    SHOUT_UPDATE = 'shout_update'
+
+# Notification Model
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    type = db.Column(db.Enum(NotificationType), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', back_populates='notifications')
 
 # User Model
 class User(db.Model, UserMixin):
@@ -15,6 +33,7 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_public = db.Column(db.Boolean, default=True)
     login_history = db.relationship('LoginHistory', back_populates='user', cascade='all, delete-orphan')
+    notifications = db.relationship('Notification', back_populates='user', cascade='all, delete-orphan')
 
     # Relationships
     shouts_performed = db.relationship('ShoutRound', back_populates='shouter', cascade='all, delete', foreign_keys='ShoutRound.shouter_id')

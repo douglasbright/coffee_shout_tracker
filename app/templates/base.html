@@ -75,6 +75,14 @@
                             <li><a class="dropdown-item {% if request.endpoint == 'profile.settings_profile' %}active{% endif %}" href="{{ url_for('profile.settings_profile') }}">Settings</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item {% if request.endpoint == 'notification.notifications' %}active{% endif %}">
+                        <a class="nav-link" href="{{ url_for('notification.notifications') }}">
+                            <i class="bi bi-bell"></i>
+                            {% if current_user.notifications|selectattr('is_read', 'equalto', False)|list|length > 0 %}
+                                <span class="badge bg-danger">{{ current_user.notifications|selectattr('is_read', 'equalto', False)|list|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
                     {% if current_user.is_admin %}
                     <li class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
                         <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
