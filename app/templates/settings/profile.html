@@ -4,105 +4,104 @@
 <div class="container mt-4">
     <h2>My Profile</h2>
 
-<!-- Profile Details Table with Avatar and Username (Nested Table) -->
-<table class="table mt-4">
-    <tbody>
-        <!-- Avatar Section -->
-        <tr>
-            <td colspan="3" class="border-top border-bottom">
-                <!-- Nested table for the Avatar -->
-                <table class="w-100">
-                    <tr>
-                        <td class="text-center">
-                            <!-- Avatar Icon -->
-                            <i class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 8rem; color: inherit;"></i>
-                            <br>
-                            <!-- Edit Icon (Pencil) positioned below the avatar -->
-                            <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#updateAvatarModal">
-                                <i class="bi bi-pencil"></i> Edit Avatar
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-        
+    <!-- Profile Details Table with Avatar and Username (Nested Table) -->
+    <table class="table mt-4">
+        <tbody>
+            <!-- Avatar Section -->
+            <tr>
+                <td colspan="3" class="border-top border-bottom">
+                    <!-- Nested table for the Avatar -->
+                    <table class="w-100">
+                        <tr>
+                            <td class="text-center">
+                                <!-- Avatar Icon -->
+                                <i class="bi {{ current_user.avatar_icon or 'bi-person-circle' }}" style="font-size: 8rem; color: inherit;"></i>
+                                <br>
+                                <!-- Edit Icon (Pencil) positioned below the avatar -->
+                                <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#updateAvatarModal">
+                                    <i class="bi bi-pencil"></i> Edit Avatar
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+            <!-- Username Section (side-by-side) -->
+            <tr>
+                <td><strong>Username</strong></td>
+                <td>{{ current_user.username }}</td>
+                <td class="text-end">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateUsernameModal{{ current_user.id }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
 
-        <!-- Username Section (side-by-side) -->
-        <tr>
-            <td><strong>Username</strong></td>
-            <td>{{ current_user.username }}</td>
-            <td class="text-end">
-                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateUsernameModal{{ current_user.id }}">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </td>
-        </tr>
+            <!-- Email Section -->
+            <tr>
+                <td><strong>Email</strong></td>
+                <td>{{ current_user.email }}</td>
+                <td class="text-end">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateEmailModal{{ current_user.id }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
 
-        <!-- Email Section -->
-        <tr>
-            <td><strong>Email</strong></td>
-            <td>{{ current_user.email }}</td>
-            <td class="text-end">
-                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateEmailModal{{ current_user.id }}">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </td>
-        </tr>
+            <!-- Password Section -->
+            <tr>
+                <td><strong>Password</strong></td>
+                <td>******</td>
+                <td class="text-end">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updatePasswordModal{{ current_user.id }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
 
-        <!-- Password Section -->
-        <tr>
-            <td><strong>Password</strong></td>
-            <td>******</td>
-            <td class="text-end">
-                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updatePasswordModal{{ current_user.id }}">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </td>
-        </tr>
-
-        <!-- Profile Visibility Toggle -->
-        <tr>
-            <td><strong>Profile Visibility</strong></td>
-            <td>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="profileVisibilityToggle" {% if current_user.is_public %}checked{% endif %}>
-                    <label class="form-check-label" for="profileVisibilityToggle">Public Profile</label>
-                </div>
-            </td>
-            <td class="text-end">
-                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmVisibilityModal">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            </td>
-        </tr>
-
-        <!-- Notification Preferences Section -->
-        <tr>
-            <td><strong>Notification Preferences</strong></td>
-            <td>
-                <form id="notificationPreferencesForm">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="notifyComments" {% if current_user.notify_comments %}checked{% endif %}>
-                        <label class="form-check-label" for="notifyComments">Notify me about comments</label>
+            <!-- Profile Visibility Toggle -->
+            <tr>
+                <td><strong>Profile Visibility</strong></td>
+                <td>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="profileVisibilityToggle" {% if current_user.is_public %}checked{% endif %}>
+                        <label class="form-check-label" for="profileVisibilityToggle">Public Profile</label>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="notifyReactions" {% if current_user.notify_reactions %}checked{% endif %}>
-                        <label class="form-check-label" for="notifyReactions">Notify me about reactions</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="notifyShoutUpdates" {% if current_user.notify_shout_updates %}checked{% endif %}>
-                        <label class="form-check-label" for="notifyShoutUpdates">Notify me about shout updates</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-2">Save Preferences</button>
-                </form>
-            </td>
-            <td class="text-end"></td>
-        </tr>
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmVisibilityModal">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
 
-    </tbody>
-</table>
+            <!-- Notification Preferences Section -->
+            <tr>
+                <td><strong>Notification Preferences</strong></td>
+                <td>
+                    <form method="POST" action="{{ url_for('profile.update_notification_preferences') }}">
+                        {{ notification_preferences_form.hidden_tag() }}
+                        <div class="form-check">
+                            {{ notification_preferences_form.notify_comments(class="form-check-input") }}
+                            {{ notification_preferences_form.notify_comments.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-check">
+                            {{ notification_preferences_form.notify_reactions(class="form-check-input") }}
+                            {{ notification_preferences_form.notify_reactions.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-check">
+                            {{ notification_preferences_form.notify_shout_updates(class="form-check-input") }}
+                            {{ notification_preferences_form.notify_shout_updates.label(class="form-check-label") }}
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">{{ notification_preferences_form.submit.label }}</button>
+                    </form>
+                </td>
+                <td class="text-end"></td>
+            </tr>
 
+        </tbody>
+    </table>
 </div>
 
 <!-- Include Modals for each form -->
@@ -158,35 +157,6 @@
                     location.reload();
                 } else {
                     alert(data.error);
-                }
-            });
-        });
-
-        // Handle notification preferences form submission
-        var notificationPreferencesForm = document.getElementById('notificationPreferencesForm');
-        notificationPreferencesForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            var notifyComments = document.getElementById('notifyComments').checked;
-            var notifyReactions = document.getElementById('notifyReactions').checked;
-            var notifyShoutUpdates = document.getElementById('notifyShoutUpdates').checked;
-
-            fetch('{{ url_for("profile.update_notification_preferences") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    notify_comments: notifyComments,
-                    notify_reactions: notifyReactions,
-                    notify_shout_updates: notifyShoutUpdates
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Notification preferences updated successfully.');
-                } else {
-                    alert('Failed to update notification preferences.');
                 }
             });
         });

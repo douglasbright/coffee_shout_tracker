@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from .models import User, Shout, db, shout_users
-from .forms import UpdatePasswordForm, UpdateAvatarForm
+from .models import User, Shout, db, shout_users, NotificationPreference
+from .forms import UpdatePasswordForm, UpdateAvatarForm, NotificationPreferencesForm
 from werkzeug.security import check_password_hash, generate_password_hash
 
 profile = Blueprint('profile', __name__)
@@ -11,7 +11,15 @@ profile = Blueprint('profile', __name__)
 def settings_profile():
     update_password_form = UpdatePasswordForm()
     avatar_form = UpdateAvatarForm(avatar_icon=current_user.avatar_icon)
-    return render_template('settings/profile.html', form=update_password_form, avatar_form=avatar_form)
+    notification_preferences_form = NotificationPreferencesForm(
+        notify_comments=current_user.notify_comments,
+        notify_reactions=current_user.notify_reactions,
+        notify_shout_updates=current_user.notify_shout_updates
+    )
+    return render_template('settings/profile.html', 
+                           form=update_password_form, 
+                           avatar_form=avatar_form, 
+                           notification_preferences_form=notification_preferences_form)
 
 @profile.route('/update_user_name/<int:user_id>', methods=['POST'])
 @login_required
@@ -118,17 +126,15 @@ def update_profile_visibility():
     db.session.commit()
     return jsonify({'success': 'Profile visibility updated successfully.'})
 
-@profile.route('/update_notification_preferences', methods=['POST'])
+@profile.route('/update_notification_preferences', methods=['GET', 'POST'])
 @login_required
 def update_notification_preferences():
-    data = request.get_json()
-    notify_comments = data.get('notify_comments', False)
-    notify_reactions = data.get('notify_reactions', False)
-    notify_shout_updates = data.get('notify_shout_updates', False)
-    
-    current_user.notify_comments = notify_comments
-    current_user.notify_reactions = notify_reactions
-    current_user.notify_shout_updates = notify_shout_updates
-    
-    db.session.commit()
-    return jsonify({'success': 'Notification preferences updated successfully.'})
+    form = NotificationPreferencesForm()
+    if form.validate_on_submit():
+        current_user.notify_comments = form.notify_comments.data
+        current_user.notify_reactions = form.notify_reactions.data
+        current_user.notify_shout_updates = form.notify_shout_updates.data
+        db.session.commit()
+        flash('Notification preferences updated successfully.', 'success')
+        return redirect(url_for('profile.settings_profile'))
+    return render_template('settings/profile.html', form=form)

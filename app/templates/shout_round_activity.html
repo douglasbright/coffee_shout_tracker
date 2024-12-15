@@ -1,0 +1,61 @@
+<!-- app/templates/shout_round_activity.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Shout Round Activity: {{ shout_round.shout.name }} - Round {{ shout_round.round_number }}</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Shouter: {{ shout_round.shouter.username }}</h5>
+            <p class="card-text">Date: {{ shout_round.date.strftime('%Y-%m-%d') }}</p>
+            <p class="card-text">Coffee Shop: {{ shout_round.coffee_shop.name if shout_round.coffee_shop else 'N/A' }}</p>
+            <p class="card-text">Attendees:</p>
+            <ul>
+                {% for attendee in shout_round.attendees %}
+                    <li>{{ attendee.username }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Comments</h5>
+            <ul class="list-group">
+                {% for comment in comments %}
+                    <li class="list-group-item">
+                        <strong>{{ comment.user.username }}:</strong> {{ comment.text }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Reactions</h5>
+            <ul class="list-group">
+                {% for reaction in reactions %}
+                    <li class="list-group-item">
+                        <strong>{{ reaction.user.username }}:</strong> <i class="{{ reaction.emoji }}"></i>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Missed Shouts</h5>
+            <ul class="list-group">
+                {% for missed_shout in missed_shouts %}
+                    <li class="list-group-item">
+                        <strong>{{ missed_shout.user.username }}:</strong> Missed this shout round
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -182,3 +182,9 @@ class ReactionForm(FlaskForm):
 class SelectFavoriteCoffeeShopForm(FlaskForm):
     coffee_shop = SelectField('Favorite Coffee Shop', validators=[DataRequired()], coerce=int)
     submit = SubmitField('Set as Favorite')
+
+class NotificationPreferencesForm(FlaskForm):
+    notify_comments = BooleanField('Notify me about comments')
+    notify_reactions = BooleanField('Notify me about reactions')
+    notify_shout_updates = BooleanField('Notify me about shout updates')
+    submit = SubmitField('Save Preferences')

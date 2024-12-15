@@ -40,8 +40,8 @@
             <div class="card mb-2 bg-light">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 mb-0">
-                        <a href="{{ url_for('shout.shout_profile', shout_id=shout_round.shout.id) }}" class="text-body text-decoration-none">
-                            {{ shout_round.shout.name }}
+                        <a href="{{ url_for('activity.shout_round_activity', shout_round_id=shout_round.id) }}" class="text-body text-decoration-none">
+                            {{ shout_round.shout.name }} - Round {{ shout_round.round_number }}
                         </a>
                     </h5>
                     <h6 class="card-subtitle mb-0 text-muted small">
@@ -65,7 +65,6 @@
                                     </a>
                                 </span>
                             </div>
-                            
                         </div>
                         <div class="col-md-6">
                             <h6 class="h6">Attendees:</h6>
@@ -104,17 +103,6 @@
                         </div>
                     </div>
                     
-                    <!-- Shout Round ID Section -->
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <h6 class="h6">
-                                <a href="{{ url_for('shout.edit_shout_round', shout_round_id=shout_round.id) }}" class="text-body text-decoration-none">
-                                    Shout Round {{ shout_round.round_number }}
-                                </a>
-                            </h6>
-                        </div>
-                    </div>
-
                     <!-- Coffee Shop Section -->
                     <div class="row mb-2">
                         <div class="col-md-12">

@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db, Notification, NotificationType
+from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db, NotificationType
 from .forms import ReactionForm
+from .notification_routes import notify_all_participants, create_notification
 import logging
 
 activity = Blueprint('activity', __name__)
@@ -31,6 +32,20 @@ def activity_feed():
     missed_shouts = MissedShout.query.filter(MissedShout.shout_id.in_([shout.id for shout in shouts])).all()
     return render_template('activity.html', shout_rounds=shout_rounds, shouts=shouts, selected_shout_id=shout_id, reaction_form=reaction_form, coffee_shops=coffee_shops, missed_shouts=missed_shouts, sort_by=sort_by)
 
+@activity.route('/shout_round/<int:shout_round_id>', methods=['GET'])
+@login_required
+def shout_round_activity(shout_round_id):
+    shout_round = ShoutRound.query.get_or_404(shout_round_id)
+    shout = shout_round.shout
+    if current_user not in shout.participants:
+        flash('You are not a participant in this shout.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    comments = ShoutComment.query.filter_by(shout_round_id=shout_round_id).all()
+    reactions = ShoutReaction.query.filter_by(shout_round_id=shout_round_id).all()
+    missed_shouts = MissedShout.query.filter_by(shout_id=shout.id, round_number=shout_round.round_number).all()
+    return render_template('shout_round_activity.html', shout_round=shout_round, comments=comments, reactions=reactions, missed_shouts=missed_shouts)
+
 @activity.route('/add_comment/<int:shout_round_id>', methods=['POST'])
 @login_required
 def add_comment(shout_round_id):
@@ -45,14 +60,13 @@ def add_comment(shout_round_id):
         db.session.add(comment)
         db.session.commit()
 
-        # Create notification for new comment
-        notification = Notification(
-            user_id=shout.owner_id,
-            type=NotificationType.COMMENT,
-            message=f"{current_user.username} commented on your shout."
+        # Notify all participants about the new comment
+        notify_all_participants(
+            shout_id=shout.id,
+            notification_type=NotificationType.COMMENT,
+            message=f"{current_user.username} commented on the shout.",
+            url=url_for('activity.shout_round_activity', shout_round_id=shout_round_id, _external=True)
         )
-        db.session.add(notification)
-        db.session.commit()
 
         return jsonify({
             'success': 'Comment added successfully.',
@@ -96,14 +110,13 @@ def add_reaction(shout_round_id):
             db.session.add(reaction)
             db.session.commit()
 
-            # Create notification for new reaction
-            notification = Notification(
-                user_id=shout.owner_id,
-                type=NotificationType.REACTION,
-                message=f"{current_user.username} reacted to your shout."
+            # Notify all participants about the new reaction
+            notify_all_participants(
+                shout_id=shout.id,
+                notification_type=NotificationType.REACTION,
+                message=f"{current_user.username} reacted to the shout.",
+                url=url_for('activity.shout_round_activity', shout_round_id=shout_round_id, _external=True)
             )
-            db.session.add(notification)
-            db.session.commit()
 
             return jsonify({'success': 'Reaction added successfully.'}), 200
     else:
@@ -135,8 +148,6 @@ def get_comments(shout_round_id):
         'text': comment.text,
         'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
     } for comment in comments])
-
-# activity_routes.py
 
 @activity.route('/like_comment/<int:comment_id>', methods=['POST'])
 @login_required

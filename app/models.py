@@ -17,10 +17,21 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     type = db.Column(db.Enum(NotificationType), nullable=False)
     message = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255), nullable=True)  # New field to store the URL
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='notifications')
+
+# NotificationPreference Model
+class NotificationPreference(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    notify_comments = db.Column(db.Boolean, default=True)
+    notify_reactions = db.Column(db.Boolean, default=True)
+    notify_shout_updates = db.Column(db.Boolean, default=True)
+
+    user = db.relationship('User', back_populates='notification_preferences')
 
 # User Model
 class User(db.Model, UserMixin):
@@ -34,6 +45,7 @@ class User(db.Model, UserMixin):
     is_public = db.Column(db.Boolean, default=True)
     login_history = db.relationship('LoginHistory', back_populates='user', cascade='all, delete-orphan')
     notifications = db.relationship('Notification', back_populates='user', cascade='all, delete-orphan')
+    notification_preferences = db.relationship('NotificationPreference', back_populates='user', uselist=False, cascade='all, delete-orphan')
 
     # Relationships
     shouts_performed = db.relationship('ShoutRound', back_populates='shouter', cascade='all, delete', foreign_keys='ShoutRound.shouter_id')
@@ -47,6 +59,36 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def notify_comments(self):
+        return self.notification_preferences.notify_comments if self.notification_preferences else False
+
+    @notify_comments.setter
+    def notify_comments(self, value):
+        if not self.notification_preferences:
+            self.notification_preferences = NotificationPreference(user_id=self.id)
+        self.notification_preferences.notify_comments = value
+
+    @property
+    def notify_reactions(self):
+        return self.notification_preferences.notify_reactions if self.notification_preferences else False
+
+    @notify_reactions.setter
+    def notify_reactions(self, value):
+        if not self.notification_preferences:
+            self.notification_preferences = NotificationPreference(user_id=self.id)
+        self.notification_preferences.notify_reactions = value
+
+    @property
+    def notify_shout_updates(self):
+        return self.notification_preferences.notify_shout_updates if self.notification_preferences else False
+
+    @notify_shout_updates.setter
+    def notify_shout_updates(self, value):
+        if not self.notification_preferences:
+            self.notification_preferences = NotificationPreference(user_id=self.id)
+        self.notification_preferences.notify_shout_updates = value
 
 # LoginHistory Model
 class LoginHistory(db.Model):
