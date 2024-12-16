@@ -94,6 +94,10 @@
                             {{ notification_preferences_form.notify_shout_updates(class="form-check-input") }}
                             {{ notification_preferences_form.notify_shout_updates.label(class="form-check-label") }}
                         </div>
+                        <div class="form-check">
+                            {{ notification_preferences_form.notify_new_shouts(class="form-check-input") }}
+                            {{ notification_preferences_form.notify_new_shouts.label(class="form-check-label") }}
+                        </div>
                         <button type="submit" class="btn btn-primary mt-2">{{ notification_preferences_form.submit.label }}</button>
                     </form>
                 </td>

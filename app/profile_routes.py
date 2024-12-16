@@ -14,7 +14,8 @@ def settings_profile():
     notification_preferences_form = NotificationPreferencesForm(
         notify_comments=current_user.notify_comments,
         notify_reactions=current_user.notify_reactions,
-        notify_shout_updates=current_user.notify_shout_updates
+        notify_shout_updates=current_user.notify_shout_updates,
+        notify_new_shouts=current_user.notify_new_shouts  # Include the new field
     )
     return render_template('settings/profile.html', 
                            form=update_password_form, 
@@ -134,6 +135,7 @@ def update_notification_preferences():
         current_user.notify_comments = form.notify_comments.data
         current_user.notify_reactions = form.notify_reactions.data
         current_user.notify_shout_updates = form.notify_shout_updates.data
+        current_user.notify_new_shouts = form.notify_new_shouts.data  # Save the new field value
         db.session.commit()
         flash('Notification preferences updated successfully.', 'success')
         return redirect(url_for('profile.settings_profile'))

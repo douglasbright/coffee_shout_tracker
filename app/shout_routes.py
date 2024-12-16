@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from .models import User, Shout, db, shout_users, ShoutRound, CoffeeShop, MissedShout, UserFavoriteCoffeeShop
 from .forms import CreateShoutForm, JoinShoutForm, EditShoutForm, AddParticipantForm, AdminForm, RecordShoutForm, EditShoutRoundForm, EditShoutCommentsForm, AddPinForm, UpdatePinForm, RemovePinForm, SelectFavoriteCoffeeShopForm
 from .shout_utils import set_next_shouter, calculate_coffee_stats, record_missed_shout_util, create_new_shout, assign_creator_to_shout, calculate_next_round_number, set_form_choices, preselect_favorite_coffee_shop, handle_form_submission, join_shout_util, join_shout_without_pin_util, leave_shout_util
+from .notification_routes import NotificationType, notify_all_participants
 from datetime import datetime
 
 shout = Blueprint('shout', __name__)
@@ -118,8 +119,21 @@ def record_shout(shout_id):
         preselect_favorite_coffee_shop(form, current_user.id, shout_id)
     
     if form.validate_on_submit():
-        handle_form_submission(form, shout, next_round_number, current_user.id)
+        shout_round = handle_form_submission(form, shout, next_round_number, current_user.id)
+        if not shout_round:
+            flash('Failed to record the shout round.', 'danger')
+            return redirect(url_for('shout.record_shout', shout_id=shout.id))
+        
         flash('Shout recorded successfully.', 'success')
+        
+        # Notify all participants about the new shout being recorded
+        notify_all_participants(
+            shout_id=shout.id,
+            notification_type=NotificationType.NEW_SHOUT,
+            message=f"A new shout has been recorded for {shout.name}.",
+            url=url_for('activity.shout_round_activity', shout_round_id=shout_round.id, _external=True)
+        )
+        
         return redirect(url_for('activity.activity_feed', shout_id=shout.id, sort_by='round_number'))
     
     return render_template('record_shout.html', form=form, shout=shout, next_round_number=next_round_number)

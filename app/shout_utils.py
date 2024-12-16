@@ -212,6 +212,7 @@ def preselect_favorite_coffee_shop(form, user_id, shout_id):
             form.coffee_shop.data = favorite.coffee_shop_id
     
 def handle_form_submission(form, shout, next_round_number, recorded_by_id):
+    try:
         shout_round = ShoutRound(
             shout_id=shout.id,
             shouter_id=form.shouter.data,
@@ -224,6 +225,10 @@ def handle_form_submission(form, shout, next_round_number, recorded_by_id):
         db.session.add(shout_round)
         db.session.commit()
         set_next_shouter(shout.id)
+        return shout_round
+    except Exception as e:
+        print(f"Error in handle_form_submission: {e}")
+        return None
 
 
 def join_shout_util(shout_name, pin_code, user_id):

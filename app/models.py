@@ -10,6 +10,7 @@ class NotificationType(Enum):
     COMMENT = 'comment'
     REACTION = 'reaction'
     SHOUT_UPDATE = 'shout_update'
+    NEW_SHOUT = 'new_shout'  # Add this line
 
 # Notification Model
 class Notification(db.Model):
@@ -30,6 +31,7 @@ class NotificationPreference(db.Model):
     notify_comments = db.Column(db.Boolean, default=True)
     notify_reactions = db.Column(db.Boolean, default=True)
     notify_shout_updates = db.Column(db.Boolean, default=True)
+    notify_new_shouts = db.Column(db.Boolean, default=True)  # New field for new shouts
 
     user = db.relationship('User', back_populates='notification_preferences')
 
@@ -89,6 +91,16 @@ class User(db.Model, UserMixin):
         if not self.notification_preferences:
             self.notification_preferences = NotificationPreference(user_id=self.id)
         self.notification_preferences.notify_shout_updates = value
+
+    @property
+    def notify_new_shouts(self):
+        return self.notification_preferences.notify_new_shouts if self.notification_preferences else True
+
+    @notify_new_shouts.setter
+    def notify_new_shouts(self, value):
+        if not self.notification_preferences:
+            self.notification_preferences = NotificationPreference(user_id=self.id)
+        self.notification_preferences.notify_new_shouts = value
 
 # LoginHistory Model
 class LoginHistory(db.Model):

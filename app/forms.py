@@ -187,4 +187,5 @@ class NotificationPreferencesForm(FlaskForm):
     notify_comments = BooleanField('Notify me about comments')
     notify_reactions = BooleanField('Notify me about reactions')
     notify_shout_updates = BooleanField('Notify me about shout updates')
+    notify_new_shouts = BooleanField('Notify me about new shouts')  # New field for new shouts
     submit = SubmitField('Save Preferences')

@@ -16,6 +16,8 @@ def create_notification(user_id, notification_type, message, url=None):
         return
     if notification_type == NotificationType.SHOUT_UPDATE and not user.notify_shout_updates:
         return
+    if notification_type == NotificationType.NEW_SHOUT and not user.notify_new_shouts:
+        return
 
     # Create and add the notification
     notification = Notification(
