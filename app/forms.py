@@ -188,4 +188,39 @@ class NotificationPreferencesForm(FlaskForm):
     notify_reactions = BooleanField('Notify me about reactions')
     notify_shout_updates = BooleanField('Notify me about shout updates')
     notify_new_shouts = BooleanField('Notify me about new shouts')  # New field for new shouts
+    profile_visibility = BooleanField('Public Profile')  # New field for profile visibility
     submit = SubmitField('Save Preferences')
+
+class CSRFTokenForm(FlaskForm):
+    pass
+
+class UpdateUsernameForm(FlaskForm):
+    username = StringField('New Username', validators=[DataRequired(), Length(min=2, max=20)])
+    submit = SubmitField('Update Username')
+
+    def __init__(self, current_username, *args, **kwargs):
+        super(UpdateUsernameForm, self).__init__(*args, **kwargs)
+        self.current_username = current_username
+
+    def validate_username(self, username):
+        if username.data != self.current_username:
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError('This username is already taken. Please choose a different one.')
+
+class UpdateEmailForm(FlaskForm):
+    email = StringField('New Email Address', validators=[DataRequired(), Email()])
+    submit = SubmitField('Save changes')
+
+    def __init__(self, current_email, *args, **kwargs):
+        super(UpdateEmailForm, self).__init__(*args, **kwargs)
+        self.current_email = current_email
+
+    def validate_email(self, email):
+        if email.data != self.current_email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('This email is already in use. Please choose a different one.')
+
+class ManageSequenceForm(FlaskForm):
+    submit = SubmitField('Save Sequence')

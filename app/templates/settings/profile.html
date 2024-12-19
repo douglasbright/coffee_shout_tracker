@@ -60,28 +60,24 @@
                 </td>
             </tr>
 
-            <!-- Profile Visibility Toggle -->
+            <!-- Public Profile Section -->
             <tr>
-                <td><strong>Profile Visibility</strong></td>
+                <td><strong>Public Profile</strong></td>
                 <td>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="profileVisibilityToggle" {% if current_user.is_public %}checked{% endif %}>
-                        <label class="form-check-label" for="profileVisibilityToggle">Public Profile</label>
-                    </div>
+                    <form method="POST" action="{{ url_for('profile.update_notification_preferences') }}">
+                        {{ notification_preferences_form.hidden_tag() }}
+                        <div class="form-check">
+                            {{ notification_preferences_form.profile_visibility(class="form-check-input") }}
+                            {{ notification_preferences_form.profile_visibility.label(class="form-check-label") }}
+                        </div>
                 </td>
-                <td class="text-end">
-                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmVisibilityModal">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                </td>
+                <td class="text-end"></td>
             </tr>
 
             <!-- Notification Preferences Section -->
             <tr>
                 <td><strong>Notification Preferences</strong></td>
                 <td>
-                    <form method="POST" action="{{ url_for('profile.update_notification_preferences') }}">
-                        {{ notification_preferences_form.hidden_tag() }}
                         <div class="form-check">
                             {{ notification_preferences_form.notify_comments(class="form-check-input") }}
                             {{ notification_preferences_form.notify_comments.label(class="form-check-label") }}
@@ -115,56 +111,5 @@
     {% include '_update_password_modal.html' %}
 {% endwith %}
 {% include '_update_avatar_modal.html' %}
-
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmVisibilityModal" tabindex="-1" aria-labelledby="confirmVisibilityModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmVisibilityModalLabel">Confirm Visibility Change</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to change your profile visibility?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmVisibilityChangeButton">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for Confirmation Modal -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var profileVisibilityToggle = document.getElementById('profileVisibilityToggle');
-        var confirmVisibilityModal = new bootstrap.Modal(document.getElementById('confirmVisibilityModal'));
-        var confirmVisibilityChangeButton = document.getElementById('confirmVisibilityChangeButton');
-
-        profileVisibilityToggle.addEventListener('change', function() {
-            confirmVisibilityModal.show();
-        });
-
-        confirmVisibilityChangeButton.addEventListener('click', function() {
-            var isPublic = profileVisibilityToggle.checked;
-            fetch('{{ url_for("profile.update_profile_visibility") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ is_public: isPublic })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.error);
-                }
-            });
-        });
-    });
-</script>
 
 {% endblock %}

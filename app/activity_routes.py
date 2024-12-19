@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db, NotificationType
+from .models import Shout, ShoutReaction, ShoutRound, ShoutComment, CommentLike, CoffeeShop, MissedShout, User, db, NotificationType, shout_users
 from .forms import ReactionForm
 from .notification_routes import notify_all_participants, create_notification
 import logging
@@ -44,7 +44,24 @@ def shout_round_activity(shout_round_id):
     comments = ShoutComment.query.filter_by(shout_round_id=shout_round_id).all()
     reactions = ShoutReaction.query.filter_by(shout_round_id=shout_round_id).all()
     missed_shouts = MissedShout.query.filter_by(shout_id=shout.id, round_number=shout_round.round_number).all()
-    return render_template('shout_round_activity.html', shout_round=shout_round, comments=comments, reactions=reactions, missed_shouts=missed_shouts)
+    reaction_form = ReactionForm()
+
+    # Fetch participants and their admin status
+    participants = db.session.execute(
+        db.select(User, shout_users.c.is_admin)
+        .join_from(shout_users, User, shout_users.c.user_id == User.id)
+        .where(shout_users.c.shout_id == shout.id)
+        .where(shout_users.c.is_active == True)
+    ).all()
+
+    # Determine if the current user is an admin
+    user_is_admin = db.session.execute(
+        db.select(shout_users.c.is_admin)
+        .where(shout_users.c.user_id == current_user.id)
+        .where(shout_users.c.shout_id == shout.id)
+    ).scalar()
+
+    return render_template('shout_round_activity.html', shout_round=shout_round, comments=comments, reactions=reactions, missed_shouts=missed_shouts, reaction_form=reaction_form, participants=participants, user_is_admin=user_is_admin)
 
 @activity.route('/add_comment/<int:shout_round_id>', methods=['POST'])
 @login_required
@@ -64,8 +81,8 @@ def add_comment(shout_round_id):
         notify_all_participants(
             shout_id=shout.id,
             notification_type=NotificationType.COMMENT,
-            message=f"{current_user.username} commented on the shout.",
-            url=url_for('activity.shout_round_activity', shout_round_id=shout_round_id, _external=True)
+            shout_round_id=shout_round_id,
+            comment_text=comment_text
         )
 
         return jsonify({
@@ -114,8 +131,8 @@ def add_reaction(shout_round_id):
             notify_all_participants(
                 shout_id=shout.id,
                 notification_type=NotificationType.REACTION,
-                message=f"{current_user.username} reacted to the shout.",
-                url=url_for('activity.shout_round_activity', shout_round_id=shout_round_id, _external=True)
+                shout_round_id=shout_round_id,
+                reaction_type=reaction_type
             )
 
             return jsonify({'success': 'Reaction added successfully.'}), 200

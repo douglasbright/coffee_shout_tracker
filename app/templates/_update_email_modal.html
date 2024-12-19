@@ -7,9 +7,10 @@
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{ url_for('profile.update_user_email', user_id=user.id) }}">
+                    {{ update_email_form.hidden_tag() }}  <!-- Include CSRF token -->
                     <div class="mb-3">
-                        <label for="email{{ user.id }}" class="form-label">New Email Address</label>
-                        <input type="email" name="email" class="form-control" id="email{{ user.id }}" value="{{ user.email }}" required>
+                        {{ update_email_form.email.label(class="form-label") }}
+                        {{ update_email_form.email(class="form-control", value=user.email) }}  <!-- Prefill with current email -->
                     </div>
                     <button type="submit" class="btn btn-primary">Save changes</button>
                 </form>

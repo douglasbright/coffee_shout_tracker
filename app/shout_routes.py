@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from .models import User, Shout, db, shout_users, ShoutRound, CoffeeShop, MissedShout, UserFavoriteCoffeeShop
-from .forms import CreateShoutForm, JoinShoutForm, EditShoutForm, AddParticipantForm, AdminForm, RecordShoutForm, EditShoutRoundForm, EditShoutCommentsForm, AddPinForm, UpdatePinForm, RemovePinForm, SelectFavoriteCoffeeShopForm
+from .forms import CreateShoutForm, JoinShoutForm, EditShoutForm, AddParticipantForm, AdminForm, RecordShoutForm, EditShoutRoundForm, EditShoutCommentsForm, AddPinForm, UpdatePinForm, RemovePinForm, SelectFavoriteCoffeeShopForm, CSRFTokenForm, ManageSequenceForm
 from .shout_utils import set_next_shouter, calculate_coffee_stats, record_missed_shout_util, create_new_shout, assign_creator_to_shout, calculate_next_round_number, set_form_choices, preselect_favorite_coffee_shop, handle_form_submission, join_shout_util, join_shout_without_pin_util, leave_shout_util
 from .notification_routes import NotificationType, notify_all_participants
 from datetime import datetime
@@ -130,8 +130,7 @@ def record_shout(shout_id):
         notify_all_participants(
             shout_id=shout.id,
             notification_type=NotificationType.NEW_SHOUT,
-            message=f"A new shout has been recorded for {shout.name}.",
-            url=url_for('activity.shout_round_activity', shout_round_id=shout_round.id, _external=True)
+            shout_round_id=shout_round.id
         )
         
         return redirect(url_for('activity.activity_feed', shout_id=shout.id, sort_by='round_number'))
@@ -209,6 +208,9 @@ def manage_sequence(shout_id):
     if not shout_participation:
         flash('You do not have permission to manage the sequence.', 'danger')
         return redirect(url_for('shout.shout_profile', shout_id=shout_id))
+    
+    form = ManageSequenceForm()
+
     active_participants = db.session.execute(
         db.select(User, shout_users.c.sequence)
         .join_from(shout_users, User, shout_users.c.user_id == User.id)
@@ -216,7 +218,8 @@ def manage_sequence(shout_id):
         .where(shout_users.c.is_active == True)
         .order_by(shout_users.c.sequence)
     ).all()
-    if request.method == 'POST':
+
+    if form.validate_on_submit():
         new_sequence = request.form.getlist('sequence[]')
         for index, user_id in enumerate(new_sequence):
             db.session.execute(
@@ -228,7 +231,8 @@ def manage_sequence(shout_id):
         db.session.commit()
         flash('Sequence updated successfully.', 'success')
         return redirect(url_for('shout.shout_profile', shout_id=shout_id))
-    return render_template('manage_sequence.html', shout=shout, active_participants=active_participants)
+    
+    return render_template('manage_sequence.html', shout=shout, active_participants=active_participants, form=form)
 
 @shout.route('/manage_shouts', methods=['GET', 'POST'])
 @login_required
@@ -340,6 +344,17 @@ def edit_shout_round(shout_round_id):
         flash('You are not a participant in this shout.', 'danger')
         return redirect(url_for('main.dashboard'))
     
+    # Check if the current user is an admin for the shout
+    is_admin = db.session.execute(
+        db.select(shout_users.c.is_admin)
+        .where(shout_users.c.user_id == current_user.id)
+        .where(shout_users.c.shout_id == shout.id)
+    ).scalar()
+    
+    if not is_admin:
+        flash('You do not have permission to edit this shout round.', 'danger')
+        return redirect(url_for('shout.shout_profile', shout_id=shout.id))
+    
     form = EditShoutRoundForm()
     form.shouter.choices = [(user.id, user.username) for user in shout.participants]
     form.attendees.choices = [(user.id, user.username) for user in shout.participants]
@@ -385,6 +400,7 @@ def shout_admin(shout_id):
     add_pin_form = AddPinForm()
     update_pin_form = UpdatePinForm()
     remove_pin_form = RemovePinForm()
+    csrf_form = CSRFTokenForm()
     
     if edit_shout_form.validate_on_submit():
         shout.name = edit_shout_form.name.data
@@ -410,7 +426,8 @@ def shout_admin(shout_id):
         edit_comments_form=edit_comments_form,
         add_pin_form=add_pin_form,
         update_pin_form=update_pin_form,
-        remove_pin_form=remove_pin_form
+        remove_pin_form=remove_pin_form,
+        csrf_form=csrf_form
     )
 
 @shout.route('/shout/<int:shout_id>/toggle_private_shout', methods=['POST'])
@@ -619,6 +636,8 @@ def user_shout_settings(shout_id):
         flash('You are not a participant in this shout.', 'danger')
         return redirect(url_for('main.dashboard'))
     
+    form = CSRFTokenForm()  # Create an instance of the minimal form
+
     if request.method == 'POST':
         # Handle form submissions for toggling comment visibility
         if 'toggle_comment_visibility' in request.form:
@@ -635,4 +654,4 @@ def user_shout_settings(shout_id):
             flash(message, 'success')
             return redirect(url_for('main.dashboard'))
     
-    return render_template('user_shout_settings.html', shout=shout, shout_participation=shout_participation)
+    return render_template('user_shout_settings.html', shout=shout, shout_participation=shout_participation, form=form)

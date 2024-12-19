@@ -13,12 +13,13 @@ class NotificationType(Enum):
     NEW_SHOUT = 'new_shout'  # Add this line
 
 # Notification Model
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     type = db.Column(db.Enum(NotificationType), nullable=False)
-    message = db.Column(db.String(255), nullable=False)
-    url = db.Column(db.String(255), nullable=True)  # New field to store the URL
+    shout_id = db.Column(db.Integer, db.ForeignKey('shout.id', ondelete='CASCADE'), nullable=True)
+    shout_round_id = db.Column(db.Integer, db.ForeignKey('shout_round.id', ondelete='CASCADE'), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

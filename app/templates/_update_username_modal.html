@@ -7,9 +7,10 @@
             </div>
             <div class="modal-body">
                 <form method="POST" action="{{ url_for('profile.update_user_name', user_id=user.id) }}">
+                    {{ update_username_form.hidden_tag() }}  <!-- Include CSRF token -->
                     <div class="mb-3">
-                        <label for="username{{ user.id }}" class="form-label">New Username</label>
-                        <input type="text" name="username" class="form-control" id="username{{ user.id }}" value="{{ user.username }}" required>
+                        {{ update_username_form.username.label(class="form-label") }}
+                        {{ update_username_form.username(class="form-control", value=user.username) }}  <!-- Prefill with current username -->
                     </div>
                     <button type="submit" class="btn btn-primary">Update Username</button>
                 </form>

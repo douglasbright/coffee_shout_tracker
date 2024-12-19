@@ -12,50 +12,178 @@
             <p class="card-text">Coffee Shop: {{ shout_round.coffee_shop.name if shout_round.coffee_shop else 'N/A' }}</p>
             <p class="card-text">Attendees:</p>
             <ul>
-                {% for attendee in shout_round.attendees %}
-                    <li>{{ attendee.username }}</li>
+                {% for participant, is_admin in participants %}
+                    <li>
+                        <a href="{{ url_for('profile.profile_view', user_id=participant.id) }}" class="text-body text-decoration-none">
+                            <i class="bi {{ participant.avatar_icon }} me-2" style="font-size: 1.2rem;"></i>
+                            {{ participant.username }}
+                        </a>
+                        {% if is_admin %}
+                            <span class="badge bg-primary">Admin</span>
+                        {% endif %}
+                    </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
 
+    <!-- Comments Section -->
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Comments</h5>
             <ul class="list-group">
                 {% for comment in comments %}
                     <li class="list-group-item">
-                        <strong>{{ comment.user.username }}:</strong> {{ comment.text }}
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-start">
+                                <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                    <i class="bi {{ comment.user.avatar_icon }} me-2" style="font-size: 1.5rem;"></i>
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>
+                                            <a href="{{ url_for('profile.profile_view', user_id=comment.user.id) }}" class="text-body text-decoration-none">
+                                                {{ comment.user.username }}
+                                            </a>
+                                        </strong>
+                                        <div class="small text-muted ms-auto">{{ comment.created_at|time_since }} ago</div>
+                                    </div>
+                                    <div class="small text-muted">{{ comment.text }}</div>
+                                </div>
+                            </div>
+                            {% if comment.user_id == current_user.id %}
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#deleteCommentModal{{ comment.id }}" class="ms-auto">
+                                    <i class="bi bi-trash text-danger ms-2" style="font-size: 1.2rem;"></i>
+                                </a>
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
+            <form class="add-comment-form" data-shout-round-id="{{ shout_round.id }}">
+                {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Add a comment" name="comment">
+                    <button class="btn btn-primary" type="submit">Comment</button>
+                </div>
+            </form>
         </div>
     </div>
 
+    <!-- Reactions Section -->
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Reactions</h5>
-            <ul class="list-group">
-                {% for reaction in reactions %}
-                    <li class="list-group-item">
-                        <strong>{{ reaction.user.username }}:</strong> <i class="{{ reaction.emoji }}"></i>
-                    </li>
-                {% endfor %}
-            </ul>
+            <div class="reactions">
+                <h6 class="h6">Other Users' Reactions:</h6>
+                <div>
+                    {% for reaction in reactions %}
+                        <i class="{{ reaction.emoji }} me-2" title="{{ reaction.user.username }}" style="font-size: 1.2rem;"></i>
+                    {% endfor %}
+                </div>
+                <h6 class="h6 mt-3">Your Reactions:</h6>
+                {% set user_reaction = reactions|selectattr('user_id', 'equalto', current_user.id)|first %}
+                <form class="reaction-form" data-shout-round-id="{{ shout_round.id }}">
+                    {{ reaction_form.hidden_tag() }}  <!-- Include CSRF token -->
+                    {% for choice in reaction_form.reaction.choices %}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm reaction-btn {% if user_reaction and user_reaction.emoji == choice[0] %}active{% endif %}" data-reaction="{{ choice[0] }}">
+                            <i class="{{ choice[0] }}"></i>
+                        </button>
+                    {% endfor %}
+                </form>
+            </div>
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Missed Shouts</h5>
-            <ul class="list-group">
-                {% for missed_shout in missed_shouts %}
-                    <li class="list-group-item">
-                        <strong>{{ missed_shout.user.username }}:</strong> Missed this shout round
-                    </li>
-                {% endfor %}
-            </ul>
+    <!-- Admin Edit Button -->
+    {% if user_is_admin %}
+    <div class="d-grid gap-2 col-12 mx-auto mt-2">
+        <a href="{{ url_for('shout.edit_shout_round', shout_round_id=shout_round.id) }}" class="btn btn-primary">Edit Shout Round</a>
+        <a href="{{ url_for('shout.shout_admin', shout_id=shout_round.shout.id) }}" class="btn btn-secondary">Edit Shout Details</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Include the Delete Comment Modal -->
+{% for comment in comments %}
+<div class="modal fade" id="deleteCommentModal{{ comment.id }}" tabindex="-1" aria-labelledby="deleteCommentModalLabel{{ comment.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCommentModalLabel{{ comment.id }}">Delete Comment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this comment?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('activity.delete_comment', comment_id=comment.id) }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+{% endfor %}
+
+<!-- JavaScript for handling form submissions -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle comment submission
+        document.querySelectorAll('.add-comment-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const shoutRoundId = this.dataset.shoutRoundId;
+                const commentText = this.querySelector('input[name="comment"]').value;
+                fetch(`/add_comment/${shoutRoundId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
+                    },
+                    body: new URLSearchParams({ comment: commentText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload the page to show the new comment
+                    } else {
+                        alert(data.error);
+                    }
+                });
+            });
+        });
+
+        // Handle reaction submission
+        document.querySelectorAll('.reaction-btn').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const form = this.closest('.reaction-form');
+                const shoutRoundId = form.dataset.shoutRoundId;
+                const reaction = this.dataset.reaction;
+                fetch(`/add_reaction/${shoutRoundId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
+                    },
+                    body: new URLSearchParams({ reaction: reaction })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload the page to show the new reaction
+                    } else {
+                        alert(data.error);
+                    }
+                });
+            });
+        });
+    });
+
+    function getCSRFToken() {
+        return document.querySelector('input[name="csrf_token"]').value;
+    }
+</script>
 {% endblock %}

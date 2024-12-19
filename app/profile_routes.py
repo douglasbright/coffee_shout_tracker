@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from .models import User, Shout, db, shout_users, NotificationPreference
-from .forms import UpdatePasswordForm, UpdateAvatarForm, NotificationPreferencesForm
+from .forms import UpdatePasswordForm, UpdateAvatarForm, NotificationPreferencesForm, UpdateUsernameForm, UpdateEmailForm
 from werkzeug.security import check_password_hash, generate_password_hash
 
 profile = Blueprint('profile', __name__)
@@ -15,41 +15,59 @@ def settings_profile():
         notify_comments=current_user.notify_comments,
         notify_reactions=current_user.notify_reactions,
         notify_shout_updates=current_user.notify_shout_updates,
-        notify_new_shouts=current_user.notify_new_shouts  # Include the new field
+        notify_new_shouts=current_user.notify_new_shouts,
+        profile_visibility=current_user.is_public  # Set the initial value for profile visibility
     )
+    update_username_form = UpdateUsernameForm(current_username=current_user.username)  # Create an instance of the UpdateUsernameForm
+    update_email_form = UpdateEmailForm(current_email=current_user.email)
+
     return render_template('settings/profile.html', 
-                           form=update_password_form, 
+                           update_password_form=update_password_form, 
                            avatar_form=avatar_form, 
-                           notification_preferences_form=notification_preferences_form)
+                           notification_preferences_form=notification_preferences_form,
+                           update_username_form=update_username_form,
+                           update_email_form=update_email_form)  # Pass the form to the template
 
 @profile.route('/update_user_name/<int:user_id>', methods=['POST'])
 @login_required
 def update_user_name(user_id):
     user = User.query.get_or_404(user_id)
-    new_username = request.form.get('username')
-    if new_username:
-        user.username = new_username
-        db.session.commit()
-        flash(f'Username updated to {new_username}.', 'success')
+    form = UpdateUsernameForm(current_username=user.username)
+    if form.validate_on_submit():
+        new_username = form.username.data
+        if new_username:
+            user.username = new_username
+            db.session.commit()
+            flash(f'Username updated to {new_username}.', 'success')
+        else:
+            flash('Username cannot be empty.', 'danger')
     else:
-        flash('Username cannot be empty.', 'danger')
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'danger')
     return redirect(request.referrer or url_for('profile.settings_profile'))
 
 @profile.route('/update_user_email/<int:user_id>', methods=['POST'])
 @login_required
 def update_user_email(user_id):
     user = User.query.get_or_404(user_id)
-    new_email = request.form['email'].lower()
-    if new_email:
-        existing_user = User.query.filter_by(email=new_email).first()
-        if existing_user and existing_user.id != user.id:
-            flash('Email already in use by another account.', 'danger')
+    form = UpdateEmailForm(current_email=user.email)
+    if form.validate_on_submit():
+        new_email = form.email.data.lower()
+        if new_email:
+            existing_user = User.query.filter_by(email=new_email).first()
+            if existing_user and existing_user.id != user.id:
+                flash('Email already in use by another account.', 'danger')
+            else:
+                user.email = new_email
+                db.session.commit()
+                flash('Email updated successfully.', 'success')
         else:
-            user.email = new_email
-            db.session.commit()
-            flash('Email updated successfully.', 'success')
+            flash('Email cannot be empty.', 'danger')
     else:
-        flash('Email cannot be empty.', 'danger')
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'danger')
     return redirect(request.referrer or url_for('profile.settings_profile'))
 
 @profile.route('/update_user_password/<int:user_id>', methods=['POST'])
@@ -127,7 +145,7 @@ def update_profile_visibility():
     db.session.commit()
     return jsonify({'success': 'Profile visibility updated successfully.'})
 
-@profile.route('/update_notification_preferences', methods=['GET', 'POST'])
+@profile.route('/update_notification_preferences', methods=['POST'])
 @login_required
 def update_notification_preferences():
     form = NotificationPreferencesForm()
@@ -135,8 +153,12 @@ def update_notification_preferences():
         current_user.notify_comments = form.notify_comments.data
         current_user.notify_reactions = form.notify_reactions.data
         current_user.notify_shout_updates = form.notify_shout_updates.data
-        current_user.notify_new_shouts = form.notify_new_shouts.data  # Save the new field value
+        current_user.notify_new_shouts = form.notify_new_shouts.data
+        current_user.is_public = form.profile_visibility.data  # Update profile visibility
         db.session.commit()
         flash('Notification preferences updated successfully.', 'success')
-        return redirect(url_for('profile.settings_profile'))
-    return render_template('settings/profile.html', form=form)
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"{getattr(form, field).label.text}: {error}", 'danger')
+    return redirect(url_for('profile.settings_profile'))

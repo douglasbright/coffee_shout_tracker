@@ -7,7 +7,9 @@
     
     <div class="card mt-4">
         <div class="card-body">
-            <form id="settingsForm">
+            <form id="settingsForm" method="POST" action="{{ url_for('shout.user_shout_settings', shout_id=shout.id) }}">
+                {{ form.hidden_tag() }}  <!-- Include CSRF token -->
+                
                 <!-- Toggle Active Status -->
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="isActive" name="is_active" {% if shout_participation.is_active %}checked{% endif %}>
@@ -46,6 +48,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="leaveShoutForm" method="POST" action="{{ url_for('shout.leave_shout', shout_id=shout.id) }}">
+                    {{ form.hidden_tag() }}  <!-- Include CSRF token -->
                     <button type="submit" class="btn btn-danger">Leave Shout</button>
                 </form>
             </div>
@@ -64,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ url_for("shout.toggle_active_status", shout_id=shout.id) }}', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
             },
             body: JSON.stringify({ is_active: isActive })
         })
@@ -84,7 +88,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ url_for("shout.toggle_comments_visibility", shout_id=shout.id) }}', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()  // Include CSRF token in headers
             },
             body: JSON.stringify({ comments_public: commentsPublic })
         })
@@ -97,6 +102,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    function getCSRFToken() {
+        return document.querySelector('input[name="csrf_token"]').value;
+    }
 });
 </script>
 {% endblock %}

@@ -9,6 +9,10 @@ from werkzeug.security import generate_password_hash
 from .context_processors import inject_quote
 from .utils import time_since 
 from datetime import datetime
+from dotenv import load_dotenv  # Import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -20,6 +24,9 @@ def create_app():
     
     # Load configuration from the Config class
     app.config.from_object(Config)
+    
+    # Print the database URI to debug
+    print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
     
     # Initialize extensions
     db.init_app(app)

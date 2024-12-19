@@ -4,6 +4,7 @@
 <div class="container mt-4">
     <h2>Manage Sequence for {{ shout.name }}</h2>
     <form method="POST" action="{{ url_for('shout.manage_sequence', shout_id=shout.id) }}" id="sequenceForm">
+        {{ form.hidden_tag() }}  <!-- Include CSRF token -->
         <ul id="sequenceList" class="list-group">
             {% for participant, sequence in active_participants %}
                 <li class="list-group-item" data-user-id="{{ participant.id }}">

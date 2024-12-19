@@ -123,6 +123,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form method="POST" action="{{ url_for('shout.delete_shout', shout_id=shout.id) }}">
+                    {{ csrf_form.hidden_tag() }}  <!-- Include CSRF token -->
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>

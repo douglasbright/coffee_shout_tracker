@@ -58,6 +58,8 @@
                     {% if current_user in shout.participants %}
                     <div class="d-grid gap-2 col-12 mx-auto mt-2">
                         <form method="POST" action="{{ url_for('shout.record_missed_shout', shout_id=shout.id) }}">
+                            {{ form.hidden_tag() }}  <!-- Include CSRF token -->
+                            <input type="hidden" name="next" value="{{ request.referrer }}">
                             <button type="submit" class="btn btn-warning w-100">Mark Shout Absent</button>
                         </form>
                     </div>

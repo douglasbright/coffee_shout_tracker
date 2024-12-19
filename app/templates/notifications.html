@@ -11,10 +11,9 @@
         {% for notification in notifications %}
             <a href="{{ notification.url or '#' }}" class="list-group-item list-group-item-action {% if not notification.is_read %}list-group-item-warning{% endif %}" data-notification-id="{{ notification.id }}" data-notification-url="{{ notification.url or '#' }}">
                 <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ notification.message }}</h5>
+                    <h5 class="mb-1">{{ notification.message|safe }}</h5>
                     <small>{{ notification.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
                 </div>
-                <small class="text-muted">{{ notification.type.value }}</small>
             </a>
         {% endfor %}
     </div>
