@@ -167,7 +167,7 @@ shout_users = db.Table('shout_users',
     db.Column('is_active', db.Boolean, default=True),
     db.Column('sequence', db.Integer, nullable=True),
     db.Column('is_catchup_due', db.Boolean, default=False),  # New field to indicate if catchup is due
-    db.Column('performed_on_behalf', db.Boolean, default=False),  # New field to indicate if the shouter performed on behalf of someone else
+    # db.Column('performed_on_behalf', db.Boolean, default=False),  # Remove the performed_on_behalf column
     db.Column('is_available_for_shout', db.Boolean, default=True)  # Field to indicate if the shouter is available for a shout
 )
 
@@ -253,7 +253,7 @@ class ShoutReaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     shout_round_id = db.Column(db.Integer, db.ForeignKey('shout_round.id'), nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    emoji = db.Column(db.String(10), nullable=False)
+    emoji = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships

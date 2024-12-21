@@ -53,7 +53,12 @@ def set_next_shouter(shout_id):
         shout_users.c.is_active == True,
         shout_users.c.is_available_for_shout == True,
         shout_users.c.is_catchup_due == True,
-        shout_users.c.sequence > current_shouter_sequence
+        shout_users.c.sequence > current_shouter_sequence,
+        ~db.exists().where(
+            MissedShout.user_id == shout_users.c.user_id,
+            MissedShout.shout_id == shout.id,
+            MissedShout.round_number == current_shouter_sequence
+        )
     ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter with catch-up due found, get the next active user in the sequence who is available for a shout
@@ -62,7 +67,12 @@ def set_next_shouter(shout_id):
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
             shout_users.c.is_available_for_shout == True,
-            shout_users.c.sequence > current_shouter_sequence
+            shout_users.c.sequence > current_shouter_sequence,
+            ~db.exists().where(
+                MissedShout.user_id == shout_users.c.user_id,
+                MissedShout.shout_id == shout.id,
+                MissedShout.round_number == current_shouter_sequence
+            )
         ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter found, wrap around to the first user in the sequence who is available for a shout and has catch-up due
@@ -71,7 +81,12 @@ def set_next_shouter(shout_id):
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
             shout_users.c.is_available_for_shout == True,
-            shout_users.c.is_catchup_due == True
+            shout_users.c.is_catchup_due == True,
+            ~db.exists().where(
+                MissedShout.user_id == shout_users.c.user_id,
+                MissedShout.shout_id == shout.id,
+                MissedShout.round_number == current_shouter_sequence
+            )
         ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter with catch-up due found, wrap around to the first user in the sequence who is available for a shout
@@ -79,7 +94,12 @@ def set_next_shouter(shout_id):
         next_shouter = db.session.query(User).join(shout_users).filter(
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
-            shout_users.c.is_available_for_shout == True
+            shout_users.c.is_available_for_shout == True,
+            ~db.exists().where(
+                MissedShout.user_id == shout_users.c.user_id,
+                MissedShout.shout_id == shout.id,
+                MissedShout.round_number == current_shouter_sequence
+            )
         ).order_by(shout_users.c.sequence).first()
 
     # Update the current shouter

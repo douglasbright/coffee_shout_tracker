@@ -27,7 +27,7 @@ def manage_quotes():
         db.session.add(new_quote)
         db.session.commit()
         flash('Quote added successfully!', 'success')
-        return redirect(url_for('main.manage_quotes'))
+        return redirect(url_for('quote.manage_quotes'))
 
     # Fetch all quotes from the database
     quotes = Quote.query.all()
@@ -53,7 +53,7 @@ def edit_quote(quote_id):
         quote.author = form.author.data
         db.session.commit()
         flash('Quote updated successfully.', 'success')
-        return redirect(url_for('main.manage_quotes'))
+        return redirect(url_for('quote.manage_quotes'))
 
     return render_template('manage_quotes.html', edit_quote_form=form)
 
@@ -70,6 +70,6 @@ def delete_quote(quote_id):
     db.session.commit()
     flash('Quote deleted successfully.', 'success')
 
-    return redirect(url_for('main.manage_quotes'))
+    return redirect(url_for('quote.manage_quotes'))
 
 from .shout_utils import set_next_shouter

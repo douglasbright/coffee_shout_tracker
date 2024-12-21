@@ -1,0 +1,39 @@
+<!-- app/templates/admin_shout_users.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Shout Users</h2>
+    {% for shout_id, data in shouts_with_users.items() %}
+        <h3>{{ data.shout.name }}</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Is Admin</th>
+                    <th>Is Active</th>
+                    <th>Sequence</th>
+                    <th>Is Catchup Due</th>
+                    <th>Is Available For Shout</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_id, username, email, is_admin, is_active, sequence, is_catchup_due, is_available_for_shout, shout_id in data.users %}
+                    <tr>
+                        <td>{{ user_id }}</td>
+                        <td>{{ username }}</td>
+                        <td>{{ email }}</td>
+                        <td>{{ 'Yes' if is_admin else 'No' }}</td>
+                        <td>{{ 'Yes' if is_active else 'No' }}</td>
+                        <td>{{ sequence }}</td>
+                        <td>{{ 'Yes' if is_catchup_due else 'No' }}</td>
+                        <td>{{ 'Yes' if is_available_for_shout else 'No' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -8,7 +8,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Add New Quote</h5>
-            <form method="POST" action="{{ url_for('main.manage_quotes') }}">
+            <form method="POST" action="{{ url_for('quote.manage_quotes') }}">
                 {{ add_quote_form.hidden_tag() }}
                 <div class="mb-3">
                     {{ add_quote_form.text.label }}<br>
@@ -42,7 +42,7 @@
                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editQuoteModal{{ quote.id }}">Edit</button>
 
                     <!-- Delete Form -->
-                    <form method="POST" action="{{ url_for('main.delete_quote', quote_id=quote.id) }}" style="display:inline;">
+                    <form method="POST" action="{{ url_for('quote.delete_quote', quote_id=quote.id) }}" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
                 </td>
@@ -57,7 +57,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form method="POST" action="{{ url_for('main.edit_quote', quote_id=quote.id) }}">
+                            <form method="POST" action="{{ url_for('quote.edit_quote', quote_id=quote.id) }}">
                                 {{ edit_quote_form.hidden_tag() }}
                                 <div class="mb-3">
                                     <label for="text">Quote</label>
