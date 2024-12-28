@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, make_response
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify, make_response
 from flask_login import login_required, current_user, login_user, logout_user
 from .models import User, LoginHistory, db
 from .forms import LoginForm, RegistrationForm
@@ -44,7 +44,6 @@ def login():
             
             response = redirect(url_for('main.dashboard'))
             response.set_cookie('last_user', user.email, max_age=60*60*24*30)
-            flash('Logged in successfully.', 'success')
             return response
         else:
             flash('Invalid email or password.', 'danger')
@@ -54,7 +53,6 @@ def login():
 @auth.route('/logout')
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
 
 @auth.route('/clear_remembered_user', methods=['POST'])
