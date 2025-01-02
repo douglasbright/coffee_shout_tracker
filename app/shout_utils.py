@@ -47,18 +47,22 @@ def set_next_shouter(shout_id):
 
     current_shouter_user, current_shouter_sequence = current_shouter
 
+    # Mark the current shouter's is_available_for_shout as False
+    db.session.execute(
+        shout_users.update().where(
+            shout_users.c.shout_id == shout.id,
+            shout_users.c.user_id == current_shouter_user.id
+        ).values(is_available_for_shout=False)
+    )
+    db.session.commit()
+
     # Get the next active user in the sequence who is available for a shout and has catch-up due
     next_shouter = db.session.query(User).join(shout_users).filter(
         shout_users.c.shout_id == shout.id,
         shout_users.c.is_active == True,
         shout_users.c.is_available_for_shout == True,
         shout_users.c.is_catchup_due == True,
-        shout_users.c.sequence > current_shouter_sequence,
-        ~db.exists().where(
-            MissedShout.user_id == shout_users.c.user_id,
-            MissedShout.shout_id == shout.id,
-            MissedShout.round_number == current_shouter_sequence
-        )
+        shout_users.c.sequence > current_shouter_sequence
     ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter with catch-up due found, get the next active user in the sequence who is available for a shout
@@ -67,12 +71,7 @@ def set_next_shouter(shout_id):
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
             shout_users.c.is_available_for_shout == True,
-            shout_users.c.sequence > current_shouter_sequence,
-            ~db.exists().where(
-                MissedShout.user_id == shout_users.c.user_id,
-                MissedShout.shout_id == shout.id,
-                MissedShout.round_number == current_shouter_sequence
-            )
+            shout_users.c.sequence > current_shouter_sequence
         ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter found, wrap around to the first user in the sequence who is available for a shout and has catch-up due
@@ -81,12 +80,7 @@ def set_next_shouter(shout_id):
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
             shout_users.c.is_available_for_shout == True,
-            shout_users.c.is_catchup_due == True,
-            ~db.exists().where(
-                MissedShout.user_id == shout_users.c.user_id,
-                MissedShout.shout_id == shout.id,
-                MissedShout.round_number == current_shouter_sequence
-            )
+            shout_users.c.is_catchup_due == True
         ).order_by(shout_users.c.sequence).first()
 
     # If no next shouter with catch-up due found, wrap around to the first user in the sequence who is available for a shout
@@ -94,12 +88,7 @@ def set_next_shouter(shout_id):
         next_shouter = db.session.query(User).join(shout_users).filter(
             shout_users.c.shout_id == shout.id,
             shout_users.c.is_active == True,
-            shout_users.c.is_available_for_shout == True,
-            ~db.exists().where(
-                MissedShout.user_id == shout_users.c.user_id,
-                MissedShout.shout_id == shout.id,
-                MissedShout.round_number == current_shouter_sequence
-            )
+            shout_users.c.is_available_for_shout == True
         ).order_by(shout_users.c.sequence).first()
 
     # Update the current shouter
@@ -244,6 +233,16 @@ def handle_form_submission(form, shout, next_round_number, recorded_by_id):
         shout_round.attendees = User.query.filter(User.id.in_(form.attendees.data)).all()
         db.session.add(shout_round)
         db.session.commit()
+        
+        # Mark the shouter's is_available_for_shout as False and reset is_catchup_due
+        db.session.execute(
+            shout_users.update().where(
+                shout_users.c.shout_id == shout.id,
+                shout_users.c.user_id == form.shouter.data
+            ).values(is_available_for_shout=False, is_catchup_due=False)
+        )
+        db.session.commit()
+        
         set_next_shouter(shout.id)
         return shout_round
     except Exception as e:
